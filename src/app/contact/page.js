@@ -14,7 +14,7 @@ export default function ContactPage() {
       <nav className="flex flex-col items-center justify-center px-6 py-4 bg-white/10 backdrop-blur-xl sticky top-0 z-50 shadow-xl border-b border-white/10 transition-all duration-300">
         <div className="flex flex-col items-center justify-center mb-2">
           <h1 className="text-3xl font-extrabold tracking-wide drop-shadow-md">
-            CSBS<span className="text-amber-300"> Hub</span>
+            CSBS<span className="text-amber-300"> SYNC</span>
           </h1>
           <p className="text-sm text-white/80 font-medium tracking-wide">
             A place for students, by students 🎓
@@ -66,7 +66,7 @@ export default function ContactPage() {
           {[
             { name: "Home", link: "/" },
             { name: "About", link: "/about" },
-            { name: "Services", link: "/Services" },
+            { name: "Services", link: "/services" },
             { name: "Gallery", link: "/gallery" },
             { name: "Contact", link: "/contact" },
           ].map((item) => (
@@ -129,7 +129,7 @@ export default function ContactPage() {
         </div>
 
         <footer className="text-white/70 text-sm mt-16">
-          © {new Date().getFullYear()} CSBS Hub — Connect. Communicate. Collaborate 💫
+          © {new Date().getFullYear()} CSBS SYNC — Connect. Communicate. Collaborate 💫
         </footer>
       </section>
     </main>

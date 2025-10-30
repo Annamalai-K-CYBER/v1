@@ -14,7 +14,7 @@ export default function Home() {
         {/* Logo + Subtitle */}
         <div className="flex flex-col items-center justify-center mb-2">
           <h1 className="text-3xl font-extrabold tracking-wide drop-shadow-md">
-            CSBS<span className="text-amber-300"> Hub</span>
+            CSBS<span className="text-amber-300"> SYNC</span>
           </h1>
           <p className="text-sm text-white/80 font-medium tracking-wide">
             A place for students, by students 🎓
@@ -126,7 +126,7 @@ export default function Home() {
       {/* Info Section */}
       <section className="bg-white text-gray-800 py-20 px-6 text-center">
         <h3 className="text-3xl md:text-4xl font-bold mb-12 text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">
-          Why Choose CSBS Hub 🚀
+          Why Choose CSBS SYNC 🚀
         </h3>
 
         <div className="max-w-6xl mx-auto grid gap-10 sm:grid-cols-2 lg:grid-cols-3">
@@ -174,7 +174,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-black/40 backdrop-blur-md text-center py-6 mt-auto border-t border-white/10">
         <p className="text-white/80 text-sm md:text-base">
-          © {new Date().getFullYear()} <span className="font-semibold">CSBS Hub</span> — Department of Computer Science & Business Systems  
+          © {new Date().getFullYear()} <span className="font-semibold">CSBS SYNC</span> — Department of Computer Science & Business Systems  
           | Built with ❤️ using Next.js, TailwindCSS & Framer Motion.
         </p>
       </footer>

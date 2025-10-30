@@ -27,7 +27,7 @@ export default function GalleryPage() {
         {/* Logo + Subtitle */}
         <div className="flex flex-col items-center justify-center mb-2">
           <h1 className="text-3xl font-extrabold tracking-wide drop-shadow-md">
-            CSBS<span className="text-amber-300"> Hub</span>
+            CSBS<span className="text-amber-300"> SYNC</span>
           </h1>
           <p className="text-sm text-white/80 font-medium tracking-wide">
             A place for students, by students 🎓
@@ -139,7 +139,7 @@ export default function GalleryPage() {
         </motion.div>
 
         <footer className="text-white/70 text-sm pt-12">
-          © {new Date().getFullYear()} CSBS Hub — Capturing Every Moment 📸
+          © {new Date().getFullYear()} CSBS SYNC — Capturing Every Moment 📸
         </footer>
       </section>
     </main>
