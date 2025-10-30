@@ -39,10 +39,10 @@ export default function Home() {
 
       <div className="relative z-10 text-center max-w-4xl mx-auto">
         <h1 className="text-5xl md:text-7xl font-black mb-6 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300 drop-shadow-lg">
-          CSBS Class Portal
+          CSBS SYNC
         </h1>
         <p className="text-lg md:text-xl font-light mb-12 text-white/90">
-          Your hub for{" "}
+          Your SPACE for{" "}
           <span className="font-bold text-yellow-300">communication</span>,{" "}
           <span className="font-bold text-pink-300">study materials</span>, and{" "}
           <span className="font-bold text-cyan-300">announcements</span>.

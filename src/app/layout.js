@@ -1,7 +1,7 @@
 import "./../styles/globals.css";
 
 export const metadata = {
-  title: "CSBS Portal",
+  title: "CSBS SYNC",
   description: "Official class portal for CSBS Department",
 };
 
