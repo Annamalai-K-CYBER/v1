@@ -1,13 +1,21 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
-import { connectDB } from "@/app/lib/db";
 
-// ✅ Force edge-friendly connection (serverless safe)
-export const dynamic = "force-dynamic";
+export const runtime = "edge"; // 🟢 ensures serverless edge compatibility
 
-await connectDB();
+// ✅ Connect to MongoDB (optimized for edge runtime)
+let conn = null;
+async function connectDB() {
+  if (conn && mongoose.connection.readyState === 1) return conn;
+  conn = await mongoose.connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  console.log("✅ MongoDB Connected (work/[id])");
+  return conn;
+}
 
-// ✅ Schema & Model
+// ✅ Schema definition
 const workSchema = new mongoose.Schema(
   {
     subject: String,
@@ -39,51 +47,40 @@ const workSchema = new mongoose.Schema(
 
 const Work = mongoose.models.Work || mongoose.model("Work", workSchema);
 
-// ✅ DELETE /api/work/:id
-export async function DELETE(_req, { params }) {
+// ✅ Helper: recalc totals
+async function getTotals() {
+  const all = await Work.find();
+  const totalWorks = all.length;
+  let completed = 0,
+    doing = 0,
+    notYetStarted = 0;
+  all.forEach((w) => {
+    completed += w.counts.completed || 0;
+    doing += w.counts.doing || 0;
+    notYetStarted += w.counts.notYetStarted || 0;
+  });
+  return { totalWorks, completed, doing, notYetStarted };
+}
+
+// ✅ DELETE handler
+export async function DELETE(req, { params }) {
   try {
+    await connectDB();
     const { id } = params;
 
     if (!id) {
-      return NextResponse.json(
-        { success: false, message: "No ID provided" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "No ID provided" }, { status: 400 });
     }
 
     const deleted = await Work.findByIdAndDelete(id);
     if (!deleted) {
-      return NextResponse.json(
-        { success: false, message: "Work not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "Work not found" }, { status: 404 });
     }
 
     const totals = await getTotals();
     return NextResponse.json({ success: true, totals });
   } catch (err) {
     console.error("❌ Delete error:", err);
-    return NextResponse.json(
-      { success: false, message: err.message },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
-}
-
-// ✅ Helper
-async function getTotals() {
-  const all = await Work.find();
-  const totalWorks = all.length;
-
-  let completed = 0,
-    doing = 0,
-    notYetStarted = 0;
-
-  all.forEach((w) => {
-    completed += w.counts?.completed || 0;
-    doing += w.counts?.doing || 0;
-    notYetStarted += w.counts?.notYetStarted || 0;
-  });
-
-  return { totalWorks, completed, doing, notYetStarted };
 }
