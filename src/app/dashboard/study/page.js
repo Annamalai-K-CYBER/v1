@@ -35,7 +35,7 @@ export default function StudyPage() {
   // ✅ Fetch topics
   const fetchTopics = async () => {
     try {
-      const res = await fetch("/api/study");
+      const res = await fetch("https://csbssync.vercel.app/api/study");
       if (!res.ok) throw new Error("Failed to fetch topics");
       const data = await res.json();
       setTopics(data);
@@ -58,7 +58,7 @@ export default function StudyPage() {
     const newEntry = { subject: selectedSubject, staff: staffName, topic };
 
     try {
-      const res = await fetch("/api/study", {
+      const res = await fetch("https://csbssync.vercel.app/api/study", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEntry),
@@ -82,7 +82,7 @@ export default function StudyPage() {
   const handleDelete = async (id) => {
     if (!confirm("Delete this topic?")) return;
     try {
-      const res = await fetch(`/api/study/${id}`, { method: "DELETE" });
+      const res = await fetch(`https://csbssync.vercel.app/api/study/${id}`, { method: "DELETE" });
       if (res.ok) {
         setTopics(topics.filter((t) => t._id !== id));
       } else {
