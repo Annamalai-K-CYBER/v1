@@ -1,9 +1,10 @@
 {
   "version": 2,
+  "framework": "nextjs",
   "builds": [
-    { "src": "dist/main.js", "use": "@vercel/node" }
+    { "src": "next.config.mjs", "use": "@vercel/next" }
   ],
   "routes": [
-    { "src": "/(.*)", "dest": "dist/main.js" }
+    { "src": "/(.*)", "dest": "/" }
   ]
 }
