@@ -6,7 +6,7 @@ let isConnected = false;
 
 async function connectDB() {
   if (!isConnected) {
-    await mongoose.connect(MONGODB_URI, { dbName: "csbs_portal" }); // ✅ include DB name
+    await mongoose.connect(MONGODB_URI, { dbName: "csbs_sync" }); // ✅ include DB name
     isConnected = true;
     console.log("✅ MongoDB connected (delete route)");
   }
