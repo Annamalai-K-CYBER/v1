@@ -1,55 +1,54 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 
-export const runtime = "nodejs";
-
-// ✅ DB Connection
+const MONGODB_URI = process.env.MONGODB_URI;
+let isConnected = false;
 async function connectDB() {
-  if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbsdb" });
+  if (isConnected) return;
+  await mongoose.connect(MONGODB_URI);
+  isConnected = true;
 }
 
-// ✅ Schema & Model
-const StatusSchema = new mongoose.Schema({
+const statusSchema = new mongoose.Schema({
   userId: String,
   username: String,
   email: String,
-  state: { type: String, default: "not yet started" },
+  state: String,
 });
 
-const WorkSchema = new mongoose.Schema(
+const workSchema = new mongoose.Schema(
   {
     subject: String,
     work: String,
     deadline: String,
     fileUrl: String,
     addedBy: String,
-    status: [StatusSchema],
+    status: [statusSchema],
   },
   { timestamps: true }
 );
 
-const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
+const Work = mongoose.models.Work || mongoose.model("Work", workSchema);
 
-// ✅ PATCH — Update status
-export async function PATCH(req, { params }) {
+export async function POST(req, { params }) {
   try {
+    const { id } = params;
+    const { userId, username, email, state } = await req.json();
+    if (!userId || !state)
+      return NextResponse.json({ success: false, message: "Missing user info" });
+
     await connectDB();
-    const { userId, state } = await req.json();
+    const work = await Work.findById(id);
+    if (!work) return NextResponse.json({ success: false, message: "Work not found" });
 
-    const work = await Work.findById(params.id);
-    if (!work) return NextResponse.json({ message: "Work not found" }, { status: 404 });
-
-    const userStatus = work.status.find((s) => s.userId === userId);
-    if (userStatus) {
-      userStatus.state = state;
-    } else {
-      work.status.push({ userId, state });
-    }
+    const existing = work.status.find((s) => s.userId === userId);
+    if (existing) existing.state = state;
+    else work.status.push({ userId, username, email, state });
 
     await work.save();
-    return NextResponse.json({ message: "Status updated", work });
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, work });
+  } catch (err) {
+    console.error("Status Error:", err);
+    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }

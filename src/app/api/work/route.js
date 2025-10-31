@@ -1,43 +1,64 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 
-export const runtime = "nodejs";
+// ✅ Inline MongoDB connection
+const MONGODB_URI = process.env.MONGODB_URI;
+if (!MONGODB_URI) throw new Error("Missing MONGODB_URI");
 
-// ✅ Connect to MongoDB
+let isConnected = false;
 async function connectDB() {
-  if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbsdb" });
+  if (isConnected) return;
+  await mongoose.connect(MONGODB_URI);
+  isConnected = true;
 }
 
-// ✅ Schema & Model
-const StatusSchema = new mongoose.Schema({
+// ✅ Inline Schema
+const statusSchema = new mongoose.Schema({
   userId: String,
   username: String,
   email: String,
-  state: { type: String, default: "not yet started" },
+  state: {
+    type: String,
+    enum: ["completed", "doing", "not yet started"],
+    default: "not yet started",
+  },
 });
 
-const WorkSchema = new mongoose.Schema(
+const workSchema = new mongoose.Schema(
   {
     subject: String,
     work: String,
     deadline: String,
     fileUrl: String,
     addedBy: String,
-    status: [StatusSchema],
+    status: [statusSchema],
   },
   { timestamps: true }
 );
 
-const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
+const Work = mongoose.models.Work || mongoose.model("Work", workSchema);
 
-// ✅ GET All Works
+// ✅ GET all works
 export async function GET() {
   try {
     await connectDB();
     const works = await Work.find().sort({ createdAt: -1 });
-    return NextResponse.json(works);
-  } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, works });
+  } catch (err) {
+    console.error("GET Error:", err);
+    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
+  }
+}
+
+// ✅ DELETE work
+export async function DELETE(req) {
+  try {
+    const { id } = await req.json();
+    await connectDB();
+    await Work.findByIdAndDelete(id);
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("DELETE Error:", err);
+    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }

@@ -1,76 +1,54 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
-import ImageKit from "imagekit";
 
-export const runtime = "nodejs";
-
-// ✅ DB Connection
+const MONGODB_URI = process.env.MONGODB_URI;
+let isConnected = false;
 async function connectDB() {
-  if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbsdb" });
+  if (isConnected) return;
+  await mongoose.connect(MONGODB_URI);
+  isConnected = true;
 }
 
-// ✅ Schema & Model
-const StatusSchema = new mongoose.Schema({
+const statusSchema = new mongoose.Schema({
   userId: String,
   username: String,
   email: String,
-  state: { type: String, default: "not yet started" },
+  state: String,
 });
 
-const WorkSchema = new mongoose.Schema(
+const workSchema = new mongoose.Schema(
   {
     subject: String,
     work: String,
     deadline: String,
     fileUrl: String,
     addedBy: String,
-    status: [StatusSchema],
+    status: [statusSchema],
   },
   { timestamps: true }
 );
 
-const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
+const Work = mongoose.models.Work || mongoose.model("Work", workSchema);
 
-// ✅ ImageKit Setup
-const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
-  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
-});
-
-// ✅ POST — Create Work
 export async function POST(req) {
   try {
-    await connectDB();
-    const body = await req.json();
-    const { subject, work, deadline, addedBy, fileBase64, status } = body;
-
+    const { subject, work, deadline, fileUrl, addedBy } = await req.json();
     if (!subject || !work || !deadline)
-      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "Missing fields" });
 
-    let fileUrl = "";
-    if (fileBase64) {
-      const uploaded = await imagekit.upload({
-        file: fileBase64,
-        fileName: `${subject}-${Date.now()}.jpg`,
-        folder: "/works",
-      });
-      fileUrl = uploaded.url;
-    }
-
+    await connectDB();
     const newWork = await Work.create({
       subject,
       work,
       deadline,
-      addedBy,
       fileUrl,
-      status: status || [],
+      addedBy,
+      status: [],
     });
 
-    return NextResponse.json({ message: "Work added", work: newWork });
-  } catch (error) {
-    console.error("❌ Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ success: true, work: newWork });
+  } catch (err) {
+    console.error("Add Error:", err);
+    return NextResponse.json({ success: false, message: err.message }, { status: 500 });
   }
 }

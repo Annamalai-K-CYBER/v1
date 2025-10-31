@@ -24,7 +24,7 @@ export default function WorkPage() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Decode JWT and set user details
+  // ✅ Decode JWT once
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -40,21 +40,22 @@ export default function WorkPage() {
     }
   }, []);
 
-  // ✅ Fetch all works
+  // ✅ Fetch all works + compute totals
   const fetchWorks = async () => {
+    if (!userId) return;
     setLoading(true);
     try {
-      const res = await fetch("https://csbssync.vercel.app/api/work", { cache: "no-store" });
+      const res = await fetch("/api/work", { cache: "no-store" });
       const data = await res.json();
 
       if (data.success) {
         const worksData = data.works || [];
 
+        // Totals for this user
         let completed = 0,
           doing = 0,
           notYetStarted = 0;
 
-        // count status for the logged-in user
         worksData.forEach((work) => {
           const myStatus = (work.status || []).find((s) => s.userId === userId);
           if (myStatus?.state === "completed") completed++;
@@ -81,14 +82,14 @@ export default function WorkPage() {
     fetchWorks();
   }, [userId]);
 
-  // ✅ File upload using ImageKit
+  // ✅ Upload file to backend
   const uploadFile = async () => {
     if (!file) return "";
     setUploading(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch("https://csbssync.vercel.app/api/work/upload", {
+      const res = await fetch("/api/work/upload", {
         method: "POST",
         body: formData,
       });
@@ -102,16 +103,13 @@ export default function WorkPage() {
     }
   };
 
-  // ✅ Add Work
+  // ✅ Add work (admin)
   const handleAddWork = async () => {
-    if (!subject || !workText || !deadline) {
-      alert("Please fill all fields");
-      return;
-    }
+    if (!subject || !workText || !deadline) return alert("Please fill all fields");
     const fileUrl = file ? await uploadFile() : "";
 
     try {
-      const res = await fetch("https://csbssync.vercel.app/api/work/add", {
+      const res = await fetch("/api/work/add", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -135,13 +133,13 @@ export default function WorkPage() {
     }
   };
 
-  // ✅ Update Status
+  // ✅ Update user status
   const handleStatusChange = async (workId, state) => {
     const token = localStorage.getItem("token");
     if (!token) return alert("Please login first");
 
     try {
-      const res = await fetch(`https://csbssync.vercel.app/api/work/status/${workId}`, {
+      const res = await fetch(`/api/work/status/${workId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, username, email, state }),
@@ -153,21 +151,21 @@ export default function WorkPage() {
     }
   };
 
-  // ✅ Delete Work
+  // ✅ Delete work (admin only)
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this work?")) return;
     try {
-      await fetch(`https://csbssync.vercel.app/api/work/${id}`, { method: "DELETE" });
+      await fetch(`/api/work/${id}`, { method: "DELETE" });
       fetchWorks();
     } catch (err) {
       console.error("Delete error:", err);
     }
   };
 
-  // ✅ UI
+  // ✅ UI rendering
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-6 px-3 flex flex-col items-center">
-      {/* ✅ Summary Cards */}
+      {/* Totals */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-5xl mb-6">
         {[
           { label: "Total Works", value: totals.totalWorks, color: "bg-indigo-500", icon: "📚" },
@@ -186,7 +184,7 @@ export default function WorkPage() {
         ))}
       </div>
 
-      {/* ✅ Admin Add Work Form */}
+      {/* Add work (admin only) */}
       {isAdmin && (
         <div className="bg-white rounded-xl shadow-md p-5 w-full max-w-md border mb-8">
           <h2 className="text-lg font-semibold text-indigo-700 mb-3">➕ Add Work</h2>
@@ -226,7 +224,7 @@ export default function WorkPage() {
         </div>
       )}
 
-      {/* ✅ Work List */}
+      {/* Works List */}
       <div className="bg-white rounded-xl shadow-md p-5 w-full max-w-4xl border">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-indigo-700 font-semibold text-base">📘 Current Works</h3>
@@ -242,16 +240,22 @@ export default function WorkPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {works.map((w) => {
-              const myStatus =
-                (w.status || []).find((s) => s.userId === userId)?.state ||
-                "not yet started";
-
+              // 3 status counts
               const counts = { completed: 0, doing: 0, notYetStarted: 0 };
               (w.status || []).forEach((s) => {
                 if (s.state === "completed") counts.completed++;
                 else if (s.state === "doing") counts.doing++;
                 else counts.notYetStarted++;
               });
+
+              // ensure total 3 entries
+              ["completed", "doing", "notYetStarted"].forEach(
+                (key) => (counts[key] = counts[key] || 0)
+              );
+
+              const myStatus =
+                (w.status || []).find((s) => s.userId === userId)?.state ||
+                "not yet started";
 
               return (
                 <div
@@ -278,14 +282,14 @@ export default function WorkPage() {
                     Added by: {w.addedBy || "Admin"}
                   </p>
 
-                  {/* Status Summary */}
+                  {/* Counts per work */}
                   <div className="mt-3 flex justify-between bg-gray-100 rounded-lg p-2 text-xs font-medium">
                     <div className="text-green-600">✅ {counts.completed}</div>
                     <div className="text-yellow-600">⚙️ {counts.doing}</div>
                     <div className="text-rose-600">🕒 {counts.notYetStarted}</div>
                   </div>
 
-                  {/* Status Buttons */}
+                  {/* Status buttons */}
                   <div className="flex flex-wrap gap-2 mt-3">
                     {["completed", "doing", "not yet started"].map((state) => (
                       <button
