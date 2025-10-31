@@ -2,79 +2,102 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import ImageKit from "imagekit";
 
+// ✅ Ensure this runtime runs on Node.js
 export const runtime = "nodejs";
-const MONGODB_URI = process.env.MONGODB_URI;
 
+// ======================
+// 🔹 MongoDB Connection
+// ======================
+const MONGODB_URI = process.env.MONGODB_URI;
 let isConnected = false;
+
 async function connectDB() {
   if (isConnected) return;
+  if (!MONGODB_URI) throw new Error("⚠️ MONGODB_URI not found in env.");
   await mongoose.connect(MONGODB_URI);
   isConnected = true;
+  console.log("✅ MongoDB Connected (upload route)");
 }
 
+// ======================
+// 🔹 Mongoose Schema
+// ======================
 const materialSchema = new mongoose.Schema(
   {
     matname: String,
     subject: String,
-    link: String,
     name: String,
+    link: String,
+    uploadDate: Date,
     format: String,
-    uploadDate: String,
   },
   { collection: "materials" }
 );
+
 const Material =
   mongoose.models.Material || mongoose.model("Material", materialSchema);
 
+// ======================
 // 🔹 ImageKit Setup
+// ======================
 const imagekit = new ImageKit({
-  publicKey: process.env.IMAGEKIT_PUBLIC,
-  privateKey: process.env.IMAGEKIT_PRIVATE,
-  urlEndpoint: process.env.IMAGEKIT_URL,
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
+// ======================
+// 🔹 POST → Upload Material
+// ======================
 export async function POST(req) {
   try {
     await connectDB();
-    const formData = await req.formData();
 
+    const formData = await req.formData();
     const file = formData.get("file");
-    const materialName = formData.get("materialName");
-    const subject = formData.get("subject");
     const username = formData.get("username");
+    const matname = formData.get("materialName");
+    const subject = formData.get("subject");
     const uploadDate = formData.get("uploadDate");
 
-    if (!file || !materialName || !subject)
-      return NextResponse.json({ success: false, message: "Missing fields" });
+    if (!file || !matname || !subject)
+      return NextResponse.json(
+        { success: false, message: "Missing required fields!" },
+        { status: 400 }
+      );
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // ✅ Convert file to base64
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    const base64File = buffer.toString("base64");
 
-    const uploadRes = await imagekit.upload({
-      file: buffer,
+    // ✅ Upload to ImageKit
+    const uploadResponse = await imagekit.upload({
+      file: base64File,
       fileName: file.name,
+      folder: "/materials",
     });
 
-    const newMaterial = new Material({
-      matname: materialName,
+    // ✅ Save to MongoDB
+    const newMaterial = await Material.create({
+      matname,
       subject,
       name: username,
-      link: uploadRes.url,
-      format: file.name.split(".").pop(),
+      link: uploadResponse.url,
       uploadDate,
+      format: file.name.split(".").pop(),
     });
-
-    await newMaterial.save();
 
     return NextResponse.json({
       success: true,
-      message: "Material uploaded successfully",
-      url: uploadRes.url,
+      message: "File uploaded successfully!",
+      url: uploadResponse.url,
+      data: newMaterial,
     });
-  } catch (err) {
-    console.error("❌ Upload error:", err);
+  } catch (error) {
+    console.error("❌ Upload error:", error);
     return NextResponse.json(
-      { success: false, message: "Upload failed", error: err.message },
+      { success: false, message: "Server error", error: error.message },
       { status: 500 }
     );
   }
