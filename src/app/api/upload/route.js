@@ -16,7 +16,7 @@ async function connectDB() {
   if (!MONGODB_URI) throw new Error("⚠️ MONGODB_URI not found in env.");
 
   // ✅ Explicitly connect to the intended database
-  await mongoose.connect(MONGODB_URI, { dbName: "csbs_portal" });
+  await mongoose.connect(MONGODB_URI, { dbName: "csbs_sync" });
   isConnected = true;
   console.log("✅ MongoDB Connected → csbs_portal (upload route)");
 }
