@@ -87,6 +87,24 @@ export default function UploadPage() {
     }
   };
 
+  // ✅ Delete Material (Admin only)
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this material?")) return;
+    try {
+      const res = await fetch(`/api/materials/${id}`, { method: "DELETE" });
+      const data = await res.json();
+      if (data.success) {
+        alert("Material deleted successfully!");
+        fetchMaterials();
+      } else {
+        alert(data.message || "Delete failed!");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      alert("Server error while deleting.");
+    }
+  };
+
   // ✅ Open link safely
   const handleViewClick = (url) => {
     if (!url) {
@@ -105,7 +123,7 @@ export default function UploadPage() {
     <div className="min-h-screen w-full flex flex-col items-center py-10 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-100">
       {/* Header */}
       <div className="text-center mb-10">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 drop-shadow-md">
+        <h1 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
           CSBS Study Materials 📚
         </h1>
         <p className="text-gray-600 mt-2">
@@ -115,7 +133,7 @@ export default function UploadPage() {
 
       {/* Admin Upload Section */}
       {isAdmin && (
-        <div className="w-[90%] max-w-xl bg-white/80 shadow-xl rounded-2xl p-8 border border-gray-200 mb-10">
+        <div className="w-[90%] max-w-xl bg-white/80 shadow p-8 rounded-xl border border-gray-200 mb-10">
           <h2 className="text-xl font-semibold text-blue-700 mb-4 text-center">
             Upload New Material
           </h2>
@@ -125,14 +143,14 @@ export default function UploadPage() {
             placeholder="Material name"
             value={materialName}
             onChange={(e) => setMaterialName(e.target.value)}
-            className="w-full mb-3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 outline-none"
+            className="w-full mb-3 p-2 border border-gray-300 rounded-md"
           />
           <input
             type="text"
             placeholder="Subject"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
-            className="w-full mb-3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-400 outline-none"
+            className="w-full mb-3 p-2 border border-gray-300 rounded-md"
           />
           <input
             type="file"
@@ -143,33 +161,19 @@ export default function UploadPage() {
           <button
             onClick={handleUpload}
             disabled={uploading}
-            className={`w-full py-3 font-semibold rounded-xl text-white transition-all ${
+            className={`w-full py-3 font-semibold rounded-md text-white transition-all ${
               uploading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02]"
+                : "bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90"
             }`}
           >
             {uploading ? "Uploading..." : "🚀 Upload Material"}
           </button>
-
-          {uploadedUrl && (
-            <div className="mt-5 text-center">
-              <p className="text-gray-700 mb-1">✅ Uploaded Successfully!</p>
-              <a
-                href={uploadedUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline break-all"
-              >
-                {uploadedUrl}
-              </a>
-            </div>
-          )}
         </div>
       )}
 
       {/* Materials List */}
-      <div className="w-[95%] max-w-6xl bg-white/90 shadow-lg p-8 rounded-2xl border border-gray-200">
+      <div className="w-[95%] max-w-6xl bg-white shadow p-8 rounded-xl border border-gray-200">
         <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">
           Available Materials
         </h2>
@@ -178,10 +182,10 @@ export default function UploadPage() {
           <p className="text-center text-gray-500 animate-pulse">Loading...</p>
         ) : materials.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {materials.map((mat, idx) => (
+            {materials.map((mat) => (
               <div
-                key={idx}
-                className="relative bg-gradient-to-br from-white to-blue-50 border border-gray-200 rounded-2xl p-6 shadow hover:shadow-lg transition-all hover:-translate-y-1"
+                key={mat._id}
+                className="relative bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all"
               >
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   {mat.matname}
@@ -217,17 +221,21 @@ export default function UploadPage() {
                   </span>
                 </p>
 
-                {mat.link ? (
+                <button
+                  onClick={() => handleViewClick(mat.link)}
+                  className="w-full py-2 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 transition"
+                >
+                  🔗 View / Download
+                </button>
+
+                {/* Delete button only for admin */}
+                {isAdmin && (
                   <button
-                    onClick={() => handleViewClick(mat.link)}
-                    className="w-full py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 transition"
+                    onClick={() => handleDelete(mat._id)}
+                    className="w-full mt-3 py-2 rounded-md bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition"
                   >
-                    🔗 View / Download
+                    🗑 Delete
                   </button>
-                ) : (
-                  <p className="text-center text-gray-400 text-sm">
-                    No link available
-                  </p>
                 )}
               </div>
             ))}
