@@ -46,7 +46,7 @@ export default function WorkPage() {
 const fetchWorks = async () => {
   setLoading(true);
   try {
-    const res = await fetch("/api/work", { cache: "no-store" });
+    const res = await fetch("https://csbssync.vercel.app/api/work", { cache: "no-store" });
     const data = await res.json();
 
     if (data.success) {
