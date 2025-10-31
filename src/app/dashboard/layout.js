@@ -44,6 +44,7 @@ export default function DashboardLayout({ children }) {
     { name: "Material", href: "/dashboard/material" },
     { name: "Work", href: "/dashboard/work" },
     { name: "Announcement", href: "/dashboard/announcement" },
+    { name: "Profile", href: "/dashboard/profile" },
   ];
 
   return (

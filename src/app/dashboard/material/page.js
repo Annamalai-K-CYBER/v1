@@ -13,19 +13,19 @@ export default function UploadPage() {
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch materials
-  async function fetchMaterials() {
-    setLoading(true);
+  // ✅ Fetch Materials
+  const fetchMaterials = async () => {
     try {
-      const res = await fetch("/api/materials");
+      setLoading(true);
+      const res = await fetch("https://csbssync.vercel.app/api/materials");
       const data = await res.json();
       setMaterials(Array.isArray(data) ? data : data.data || []);
-    } catch (error) {
-      console.error("Error fetching materials:", error);
+    } catch (err) {
+      console.error("Error fetching materials:", err);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     fetchMaterials();
@@ -37,7 +37,7 @@ export default function UploadPage() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
-        setUsername(decoded?.username);
+        setUsername(decoded?.username || "");
         setIsAdmin(decoded?.role === "admin");
       } catch (err) {
         console.error("Invalid token:", err);
@@ -45,12 +45,7 @@ export default function UploadPage() {
     }
   }, []);
 
-  // ✅ Handlers
-  const handleFileChange = (e) => setFile(e.target.files[0]);
-  const handleNameChange = (e) => setMaterialName(e.target.value);
-  const handleSubjectChange = (e) => setSubject(e.target.value);
-
-  // ✅ Upload Function
+  // ✅ Upload
   const handleUpload = async () => {
     if (!file || !materialName || !subject) {
       alert("Please fill all fields and select a file!");
@@ -70,7 +65,7 @@ export default function UploadPage() {
     formData.append("uploadDate", new Date().toISOString());
 
     try {
-      const res = await fetch("/api/upload", {
+      const res = await fetch("https://csbssync.vercel.app/api/upload", {
         method: "POST",
         body: formData,
       });
@@ -80,33 +75,47 @@ export default function UploadPage() {
         setMaterialName("");
         setSubject("");
         setFile(null);
-        await fetchMaterials();
+        fetchMaterials();
       } else {
         alert(data.message || "Upload failed!");
       }
     } catch (err) {
       console.error("Upload error:", err);
-      alert("Error uploading file");
+      alert("Upload failed");
     } finally {
       setUploading(false);
     }
   };
 
+  // ✅ Open link safely
+  const handleViewClick = (url) => {
+    if (!url) {
+      alert("No valid link found!");
+      return;
+    }
+    try {
+      const finalUrl = url.startsWith("http") ? url : `https://${url}`;
+      window.open(finalUrl, "_blank", "noopener,noreferrer");
+    } catch (err) {
+      console.error("Invalid URL:", err);
+    }
+  };
+
   return (
     <div className="min-h-screen w-full flex flex-col items-center py-10 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-100">
-      {/* Title Section */}
+      {/* Header */}
       <div className="text-center mb-10">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 drop-shadow-md">
-          CSBS Study Materials <span>📚</span>
+          CSBS Study Materials 📚
         </h1>
         <p className="text-gray-600 mt-2">
           {username ? `Welcome, ${username} 👋` : "Please log in first."}
         </p>
       </div>
 
-      {/* Admin Upload Card */}
+      {/* Admin Upload Section */}
       {isAdmin && (
-        <div className="w-[90%] max-w-xl bg-white/70 backdrop-blur-md shadow-lg rounded-2xl p-8 border border-gray-100 mb-10">
+        <div className="w-[90%] max-w-xl bg-white/80 shadow-xl rounded-2xl p-8 border border-gray-200 mb-10">
           <h2 className="text-xl font-semibold text-blue-700 mb-4 text-center">
             Upload New Material
           </h2>
@@ -115,28 +124,26 @@ export default function UploadPage() {
             type="text"
             placeholder="Material name"
             value={materialName}
-            onChange={handleNameChange}
-            className="block w-full mb-4 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 outline-none"
+            onChange={(e) => setMaterialName(e.target.value)}
+            className="w-full mb-3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-400 outline-none"
           />
-
           <input
             type="text"
             placeholder="Subject"
             value={subject}
-            onChange={handleSubjectChange}
-            className="block w-full mb-4 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-purple-400 outline-none"
+            onChange={(e) => setSubject(e.target.value)}
+            className="w-full mb-3 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-400 outline-none"
           />
-
           <input
             type="file"
-            onChange={handleFileChange}
-            className="block w-full mb-4 border border-gray-300 rounded-lg p-2 bg-white"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="w-full mb-4 border border-gray-300 rounded-md p-2 bg-white"
           />
 
           <button
             onClick={handleUpload}
             disabled={uploading}
-            className={`w-full py-3 font-semibold rounded-xl text-white transition-all duration-300 ${
+            className={`w-full py-3 font-semibold rounded-xl text-white transition-all ${
               uploading
                 ? "bg-gray-400 cursor-not-allowed"
                 : "bg-gradient-to-r from-blue-600 to-purple-600 hover:scale-[1.02]"
@@ -146,13 +153,13 @@ export default function UploadPage() {
           </button>
 
           {uploadedUrl && (
-            <div className="mt-6 text-center">
+            <div className="mt-5 text-center">
               <p className="text-gray-700 mb-1">✅ Uploaded Successfully!</p>
               <a
                 href={uploadedUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 font-medium underline break-all"
+                className="text-blue-600 underline break-all"
               >
                 {uploadedUrl}
               </a>
@@ -161,8 +168,8 @@ export default function UploadPage() {
         </div>
       )}
 
-      {/* Materials Section */}
-      <div className="w-[95%] max-w-6xl bg-white/80 backdrop-blur-md shadow-lg p-8 rounded-2xl border border-gray-100">
+      {/* Materials List */}
+      <div className="w-[95%] max-w-6xl bg-white/90 shadow-lg p-8 rounded-2xl border border-gray-200">
         <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">
           Available Materials
         </h2>
@@ -174,10 +181,8 @@ export default function UploadPage() {
             {materials.map((mat, idx) => (
               <div
                 key={idx}
-                className="group relative bg-gradient-to-br from-white to-blue-50 border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-xl transition-all hover:-translate-y-1"
+                className="relative bg-gradient-to-br from-white to-blue-50 border border-gray-200 rounded-2xl p-6 shadow hover:shadow-lg transition-all hover:-translate-y-1"
               >
-                <div className="absolute inset-0 bg-gradient-to-tr from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 rounded-2xl transition-all duration-300"></div>
-
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   {mat.matname}
                 </h3>
@@ -195,32 +200,30 @@ export default function UploadPage() {
 
                 <img
                   src={
-                    ["png", "jpg", "jpeg", "img"].includes(
-                      mat.format?.toLowerCase()
+                    ["png", "jpg", "jpeg"].includes(
+                      mat.format?.toLowerCase?.() || ""
                     )
                       ? "https://img.icons8.com/fluency/96/image.png"
                       : "https://img.icons8.com/fluency/96/document.png"
                   }
-                  alt={mat.matname}
-                  className="w-16 h-16 mx-auto my-3 rounded-lg object-contain"
+                  alt="icon"
+                  className="w-16 h-16 mx-auto my-3"
                 />
 
-                <p className="text-sm text-gray-500 mb-4">
+                <p className="text-sm text-gray-600 mb-3 text-center">
                   Uploaded by:{" "}
-                  <span className="font-medium text-gray-700">
+                  <span className="font-medium text-gray-800">
                     {mat.name || "Unknown"}
                   </span>
                 </p>
 
                 {mat.link ? (
-                  <a
-                    href={mat.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block text-center py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 transition"
+                  <button
+                    onClick={() => handleViewClick(mat.link)}
+                    className="w-full py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 transition"
                   >
-                    View / Download
-                  </a>
+                    🔗 View / Download
+                  </button>
                 ) : (
                   <p className="text-center text-gray-400 text-sm">
                     No link available
@@ -230,7 +233,9 @@ export default function UploadPage() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500">No materials available yet.</p>
+          <p className="text-center text-gray-500">
+            No materials available yet.
+          </p>
         )}
       </div>
     </div>
