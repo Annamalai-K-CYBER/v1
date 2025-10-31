@@ -103,29 +103,19 @@ export default function ContactPage() {
             <Mail className="text-amber-300" size={26} />
             <div>
               <h2 className="font-semibold text-xl">Email</h2>
-              <p className="text-white/80">csbshub@gmail.com</p>
+              <p className="text-white/80">regaldinsite@gmail.com</p>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
             <Phone className="text-amber-300" size={26} />
             <div>
-              <h2 className="font-semibold text-xl">Phone</h2>
-              <p className="text-white/80">+91 98765 43210</p>
+              <h2 className="font-semibold text-xl">Whatsapp</h2>
+              <p className="text-white/80">+91 86085 97609</p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
-            <MapPin className="text-amber-300" size={26} />
-            <div>
-              <h2 className="font-semibold text-xl">Address</h2>
-              <p className="text-white/80">
-                CSBS Services, Example College,
-                <br />
-                Chennai, Tamil Nadu, India.
-              </p>
-            </div>
-          </div>
+          
         </div>
 
         <footer className="text-white/70 text-sm mt-16">
