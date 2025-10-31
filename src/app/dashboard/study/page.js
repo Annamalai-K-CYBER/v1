@@ -42,7 +42,7 @@ export default function StudyPage() {
       setTopics(data);
     } catch (err) {
       console.error(err);
-      // fallback
+      // fallback data
       setTopics([
         { _id: "1", subject: "Mathematics", staff: "Dr. S. Ramya", topic: "Calculus" },
         { _id: "2", subject: "Mathematics", staff: "Dr. S. Ramya", topic: "Limits" },
@@ -53,7 +53,6 @@ export default function StudyPage() {
 
   const handleAddTopic = async () => {
     if (!selectedSubject || !topic.trim()) return alert("Please fill all fields!");
-
     const staffName = subjects.find((s) => s.name === selectedSubject)?.staff || "";
     const newEntry = { subject: selectedSubject, staff: staffName, topic };
 
@@ -63,7 +62,6 @@ export default function StudyPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newEntry),
       });
-
       if (res.ok) {
         const saved = await res.json();
         setTopics([...topics, saved]);
@@ -155,10 +153,7 @@ export default function StudyPage() {
               ))}
               <tr className="bg-rose-100">
                 <td className="p-2 sm:p-3 font-semibold border border-indigo-100">Sunday</td>
-                <td
-                  colSpan={7}
-                  className="p-2 sm:p-3 border border-indigo-100 text-gray-600 italic"
-                >
+                <td colSpan={7} className="p-2 sm:p-3 border border-indigo-100 text-gray-600 italic">
                   🌞 Holiday
                 </td>
               </tr>
@@ -167,52 +162,54 @@ export default function StudyPage() {
         </div>
       )}
 
-      {/* Add Topic Form */}
-      <div className="bg-white/80 backdrop-blur-md border border-indigo-100 shadow-lg p-4 sm:p-6 rounded-2xl max-w-3xl mx-auto">
-        <h2 className="text-xl sm:text-2xl font-semibold text-indigo-700 mb-4 text-center">
-          ➕ Add New Topic
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-          <select
-            className="p-2 sm:p-3 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 text-sm sm:text-base"
-            value={selectedSubject}
-            onChange={(e) => setSelectedSubject(e.target.value)}
-          >
-            <option value="">Select Subject</option>
-            {subjects.map((s) => (
-              <option key={s.name} value={s.name}>
-                {s.name}
-              </option>
-            ))}
-          </select>
+      {/* ✅ Admin-only Add Topic Form */}
+      {isAdmin && (
+        <div className="bg-white/80 backdrop-blur-md border border-indigo-100 shadow-lg p-4 sm:p-6 rounded-2xl max-w-3xl mx-auto">
+          <h2 className="text-xl sm:text-2xl font-semibold text-indigo-700 mb-4 text-center">
+            ➕ Add New Topic
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+            <select
+              className="p-2 sm:p-3 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 text-sm sm:text-base"
+              value={selectedSubject}
+              onChange={(e) => setSelectedSubject(e.target.value)}
+            >
+              <option value="">Select Subject</option>
+              {subjects.map((s) => (
+                <option key={s.name} value={s.name}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
 
-          <input
-            type="text"
-            readOnly
-            placeholder="Staff Name"
-            value={subjects.find((s) => s.name === selectedSubject)?.staff || ""}
-            className="p-2 sm:p-3 border-2 border-indigo-200 rounded-xl bg-gray-50 text-gray-700 text-sm sm:text-base"
-          />
+            <input
+              type="text"
+              readOnly
+              placeholder="Staff Name"
+              value={subjects.find((s) => s.name === selectedSubject)?.staff || ""}
+              className="p-2 sm:p-3 border-2 border-indigo-200 rounded-xl bg-gray-50 text-gray-700 text-sm sm:text-base"
+            />
 
-          <input
-            type="text"
-            placeholder="Enter topic name"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            className="p-2 sm:p-3 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 text-sm sm:text-base"
-          />
+            <input
+              type="text"
+              placeholder="Enter topic name"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              className="p-2 sm:p-3 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-400 text-sm sm:text-base"
+            />
+          </div>
+
+          <div className="flex justify-end mt-4 sm:mt-5">
+            <button
+              onClick={handleAddTopic}
+              className="bg-indigo-600 text-white px-4 sm:px-6 py-2 rounded-xl hover:bg-indigo-700 active:scale-95 transition text-sm sm:text-base"
+            >
+              <Plus size={16} className="inline-block mr-1" />
+              Add Topic
+            </button>
+          </div>
         </div>
-
-        <div className="flex justify-end mt-4 sm:mt-5">
-          <button
-            onClick={handleAddTopic}
-            className="bg-indigo-600 text-white px-4 sm:px-6 py-2 rounded-xl hover:bg-indigo-700 active:scale-95 transition text-sm sm:text-base"
-          >
-            <Plus size={16} className="inline-block mr-1" />
-            Add Topic
-          </button>
-        </div>
-      </div>
+      )}
 
       {/* Subject Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -226,9 +223,7 @@ export default function StudyPage() {
               className="flex justify-between items-center cursor-pointer"
             >
               <div>
-                <h3 className="text-lg sm:text-2xl font-bold text-indigo-700">
-                  {subj.name}
-                </h3>
+                <h3 className="text-lg sm:text-2xl font-bold text-indigo-700">{subj.name}</h3>
                 <p className="text-sm text-gray-600 mt-1">👩‍🏫 {subj.staff}</p>
               </div>
               {open === i ? (

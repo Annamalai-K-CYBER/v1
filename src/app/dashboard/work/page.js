@@ -24,15 +24,14 @@ export default function WorkPage() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Decode JWT once on mount
+  // ✅ Decode JWT and set user details
   useEffect(() => {
-    if (typeof window === "undefined") return;
     const token = localStorage.getItem("token");
     if (!token) return;
     try {
       const decoded = jwtDecode(token);
       setIsAdmin(decoded?.role === "admin");
-      setUsername(decoded?.name || decoded?.username || "");
+      setUsername(decoded?.username || decoded?.name || "");
       setEmail(decoded?.email || "");
       setUserId(decoded?.userId || decoded?._id || "");
     } catch (err) {
@@ -42,84 +41,73 @@ export default function WorkPage() {
   }, []);
 
   // ✅ Fetch all works
-  // 🔹 Fetch works from backend
-const fetchWorks = async () => {
-  setLoading(true);
-  try {
-    const res = await fetch("https://csbssync.vercel.app/api/work", { cache: "no-store" });
-    const data = await res.json();
+  const fetchWorks = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("https://csbssync.vercel.app/api/work", { cache: "no-store" });
+      const data = await res.json();
 
-    if (data.success) {
-      const worksData = data.works || [];
+      if (data.success) {
+        const worksData = data.works || [];
 
-      // 🧮 Recalculate totals for the logged-in user only
-      let completed = 0,
-        doing = 0,
-        notYetStarted = 0;
+        let completed = 0,
+          doing = 0,
+          notYetStarted = 0;
 
-      worksData.forEach((work) => {
-        const myStatus = (work.status || []).find((s) => s.userId === userId);
+        // count status for the logged-in user
+        worksData.forEach((work) => {
+          const myStatus = (work.status || []).find((s) => s.userId === userId);
+          if (myStatus?.state === "completed") completed++;
+          else if (myStatus?.state === "doing") doing++;
+          else notYetStarted++;
+        });
 
-        if (myStatus?.state === "completed") completed++;
-        else if (myStatus?.state === "doing") doing++;
-        else notYetStarted++; // if no status or "not yet started"
-      });
-
-      setWorks(worksData);
-      setTotals({
-        totalWorks: worksData.length,
-        completed,
-        doing,
-        notYetStarted,
-      });
-    } else {
-      console.error("Fetch failed:", data.message);
+        setWorks(worksData);
+        setTotals({
+          totalWorks: worksData.length,
+          completed,
+          doing,
+          notYetStarted,
+        });
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    console.error("❌ Fetch error:", err);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchWorks();
-  }, []);
+  }, [userId]);
 
-  // ✅ Upload file to ImageKit
- const uploadFile = async () => {
-  if (!file) return "";
-  setUploading(true);
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
+  // ✅ File upload using ImageKit
+  const uploadFile = async () => {
+    if (!file) return "";
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("https://csbssync.vercel.app/api/work/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      return data?.url || "";
+    } catch (err) {
+      console.error("Upload failed:", err);
+      return "";
+    } finally {
+      setUploading(false);
+    }
+  };
 
-    const res = await fetch("https://csbssync.vercel.app/api/work/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const text = await res.text(); // get raw
-    console.log("Upload response:", text);
-
-    const data = JSON.parse(text);
-    return data?.url || "";
-  } catch (err) {
-    console.error("❌ File upload failed:", err);
-    return "";
-  } finally {
-    setUploading(false);
-  }
-};
-
-  // ✅ Add new work
+  // ✅ Add Work
   const handleAddWork = async () => {
     if (!subject || !workText || !deadline) {
       alert("Please fill all fields");
       return;
     }
-
     const fileUrl = file ? await uploadFile() : "";
 
     try {
@@ -134,24 +122,20 @@ const fetchWorks = async () => {
           addedBy: username,
         }),
       });
-
       const data = await res.json();
       if (data.success) {
-        setWorks([data.work, ...works]);
-        setTotals(data.totals);
         setSubject("");
         setWorkText("");
         setDeadline("");
         setFile(null);
-      } else {
-        alert(data.message || "Error adding work");
-      }
+        fetchWorks();
+      } else alert(data.message);
     } catch (err) {
-      console.error("❌ Add work error:", err);
+      console.error("Add error:", err);
     }
   };
 
-  // ✅ Update work status
+  // ✅ Update Status
   const handleStatusChange = async (workId, state) => {
     const token = localStorage.getItem("token");
     if (!token) return alert("Please login first");
@@ -163,37 +147,28 @@ const fetchWorks = async () => {
         body: JSON.stringify({ userId, username, email, state }),
       });
       const data = await res.json();
-      if (data.success) {
-        setWorks((prev) =>
-          prev.map((w) => (w._id === data.work._id ? data.work : w))
-        );
-        setTotals(data.totals);
-      }
+      if (data.success) fetchWorks();
     } catch (err) {
-      console.error("❌ Status update error:", err);
+      console.error("Status update error:", err);
     }
   };
 
-  // ✅ Delete work
+  // ✅ Delete Work
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this work?")) return;
     try {
-      const res = await fetch(`https://csbssync.vercel.app/api/work/${id}`, { method: "DELETE" });
-      const data = await res.json();
-      if (data.success) {
-        setWorks((prev) => prev.filter((w) => w._id !== id));
-        setTotals(data.totals);
-      }
+      await fetch(`https://csbssync.vercel.app/api/work/${id}`, { method: "DELETE" });
+      fetchWorks();
     } catch (err) {
-      console.error("❌ Delete error:", err);
+      console.error("Delete error:", err);
     }
   };
 
-  // ✅ Render UI
+  // ✅ UI
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-6 px-4 flex flex-col items-center">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-4xl mb-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-6 px-3 flex flex-col items-center">
+      {/* ✅ Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-5xl mb-6">
         {[
           { label: "Total Works", value: totals.totalWorks, color: "bg-indigo-500", icon: "📚" },
           { label: "Completed", value: totals.completed, color: "bg-green-500", icon: "✅" },
@@ -202,7 +177,7 @@ const fetchWorks = async () => {
         ].map((card, i) => (
           <div
             key={i}
-            className={`${card.color} text-white rounded-xl shadow-md p-4 flex flex-col items-center justify-center`}
+            className={`${card.color} text-white rounded-xl shadow-md p-4 flex flex-col items-center justify-center transition hover:scale-105`}
           >
             <div className="text-2xl">{card.icon}</div>
             <p className="text-xs uppercase tracking-wide">{card.label}</p>
@@ -211,50 +186,48 @@ const fetchWorks = async () => {
         ))}
       </div>
 
-      {/* Admin Add Form */}
+      {/* ✅ Admin Add Work Form */}
       {isAdmin && (
-        <div className="bg-white w-full max-w-md rounded-xl shadow-lg p-5 border mb-8">
-          <h2 className="text-lg font-semibold text-indigo-700 mb-4">➕ Add Work</h2>
-          <div className="space-y-2">
-            <input
-              type="text"
-              placeholder="Subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="w-full p-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-400"
-            />
-            <textarea
-              placeholder="Work details"
-              value={workText}
-              onChange={(e) => setWorkText(e.target.value)}
-              className="w-full p-2 border rounded-md text-sm focus:ring-2 focus:ring-indigo-400"
-            />
-            <input
-              type="date"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-              className="w-full p-2 border rounded-md text-sm"
-            />
-            <input
-              type="file"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="w-full text-sm"
-            />
-            <button
-              onClick={handleAddWork}
-              disabled={uploading}
-              className={`w-full py-2 rounded-md text-white font-medium transition ${
-                uploading ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
-              }`}
-            >
-              {uploading ? "Uploading..." : "Add Work"}
-            </button>
-          </div>
+        <div className="bg-white rounded-xl shadow-md p-5 w-full max-w-md border mb-8">
+          <h2 className="text-lg font-semibold text-indigo-700 mb-3">➕ Add Work</h2>
+          <input
+            type="text"
+            placeholder="Subject"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="w-full mb-2 p-2 border rounded-md text-sm"
+          />
+          <textarea
+            placeholder="Work details"
+            value={workText}
+            onChange={(e) => setWorkText(e.target.value)}
+            className="w-full mb-2 p-2 border rounded-md text-sm"
+          />
+          <input
+            type="date"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            className="w-full mb-2 p-2 border rounded-md text-sm"
+          />
+          <input
+            type="file"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="w-full mb-3 text-sm"
+          />
+          <button
+            onClick={handleAddWork}
+            disabled={uploading}
+            className={`w-full py-2 rounded-md text-white text-sm font-semibold ${
+              uploading ? "bg-gray-400" : "bg-indigo-600 hover:bg-indigo-700"
+            }`}
+          >
+            {uploading ? "Uploading..." : "Add Work"}
+          </button>
         </div>
       )}
 
-      {/* Work List */}
-      <div className="w-full max-w-3xl bg-white rounded-xl shadow-md border p-5">
+      {/* ✅ Work List */}
+      <div className="bg-white rounded-xl shadow-md p-5 w-full max-w-4xl border">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-indigo-700 font-semibold text-base">📘 Current Works</h3>
           <button onClick={fetchWorks} className="text-indigo-500 text-sm hover:underline">
@@ -267,7 +240,7 @@ const fetchWorks = async () => {
         ) : works.length === 0 ? (
           <div className="text-center text-gray-400 py-6">No works found</div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {works.map((w) => {
               const myStatus =
                 (w.status || []).find((s) => s.userId === userId)?.state ||
@@ -283,7 +256,7 @@ const fetchWorks = async () => {
               return (
                 <div
                   key={w._id}
-                  className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-white to-indigo-50 shadow-sm hover:shadow-lg transition-all duration-300"
+                  className="border border-gray-200 rounded-lg p-4 bg-gradient-to-br from-white to-indigo-50 shadow-sm"
                 >
                   <h4 className="font-semibold text-indigo-800">{w.subject}</h4>
                   <p className="text-gray-600 text-sm mt-1">{w.work}</p>
@@ -298,32 +271,27 @@ const fetchWorks = async () => {
                       rel="noreferrer"
                       className="text-blue-500 underline text-xs block mt-1"
                     >
-                      👀 View File
+                      📎 View File
                     </a>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
                     Added by: {w.addedBy || "Admin"}
                   </p>
 
-                  {/* ✅ Improved Status Count UI */}
+                  {/* Status Summary */}
                   <div className="mt-3 flex justify-between bg-gray-100 rounded-lg p-2 text-xs font-medium">
-                    <div className="flex items-center gap-1 text-green-600">
-                      ✅ <span>Completed:</span> <span>{counts.completed}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-yellow-600">
-                      ⚙️ <span>Doing:</span> <span>{counts.doing}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-rose-600">
-                      🕒 <span>Not Started:</span> <span>{counts.notYetStarted}</span>
-                    </div>
+                    <div className="text-green-600">✅ {counts.completed}</div>
+                    <div className="text-yellow-600">⚙️ {counts.doing}</div>
+                    <div className="text-rose-600">🕒 {counts.notYetStarted}</div>
                   </div>
 
+                  {/* Status Buttons */}
                   <div className="flex flex-wrap gap-2 mt-3">
                     {["completed", "doing", "not yet started"].map((state) => (
                       <button
                         key={state}
                         onClick={() => handleStatusChange(w._id, state)}
-                        className={`flex-1 text-xs py-1 rounded-md text-white transition ${
+                        className={`flex-1 text-xs py-1 rounded-md text-white ${
                           myStatus === state
                             ? state === "completed"
                               ? "bg-green-700"
@@ -347,7 +315,7 @@ const fetchWorks = async () => {
                     {isAdmin && (
                       <button
                         onClick={() => handleDelete(w._id)}
-                        className="bg-red-500 text-white text-xs py-1 px-2 rounded-md hover:bg-red-600"
+                        className="bg-red-500 text-white text-xs py-1 px-2 rounded-md"
                       >
                         🗑 Delete
                       </button>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import ImageKit from "imagekit";
 
-export const runtime = "nodejs"; // ✅ Node runtime (NOT Edge)
+export const runtime = "nodejs"; // ✅ Required for MongoDB + ImageKit
 
 // ======================
 // 🔹 MongoDB Connection
@@ -26,7 +26,7 @@ async function connectDB() {
 }
 
 // ======================
-// 🔹 Mongoose Schema
+// 🔹 Schema Definitions
 // ======================
 const StatusSchema = new mongoose.Schema({
   userId: String,
@@ -37,9 +37,9 @@ const StatusSchema = new mongoose.Schema({
 
 const WorkSchema = new mongoose.Schema(
   {
-    subject: String,
-    work: String,
-    deadline: String,
+    subject: { type: String, required: true },
+    work: { type: String, required: true },
+    deadline: { type: String, required: true },
     fileUrl: String,
     addedBy: String,
     status: [StatusSchema],
@@ -47,7 +47,6 @@ const WorkSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Prevent model overwrite in hot reload
 const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
 
 // ======================
@@ -60,24 +59,25 @@ const imagekit = new ImageKit({
 });
 
 // ======================
-// 🔹 GET: All Works
+// 🔹 GET: Fetch all works
 // ======================
 export async function GET() {
   try {
     await connectDB();
     const works = await Work.find().sort({ createdAt: -1 });
-    return NextResponse.json(works, { status: 200 });
+
+    return NextResponse.json({ success: true, works }, { status: 200 });
   } catch (error) {
     console.error("❌ GET /api/works Error:", error);
     return NextResponse.json(
-      { message: "Error fetching works", error: error.message },
+      { success: false, message: "Error fetching works", error: error.message },
       { status: 500 }
     );
   }
 }
 
 // ======================
-// 🔹 POST: Create Work
+// 🔹 POST: Add new work
 // ======================
 export async function POST(req) {
   try {
@@ -87,7 +87,7 @@ export async function POST(req) {
 
     if (!subject || !work || !deadline) {
       return NextResponse.json(
-        { message: "Missing required fields" },
+        { success: false, message: "Missing required fields" },
         { status: 400 }
       );
     }
@@ -111,13 +111,15 @@ export async function POST(req) {
       status: status || [],
     });
 
-    return NextResponse.json(newWork, { status: 201 });
+    return NextResponse.json(
+      { success: true, message: "Work added successfully", work: newWork },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("❌ POST /api/works Error:", error);
     return NextResponse.json(
-      { message: "Error creating work", error: error.message },
+      { success: false, message: "Error creating work", error: error.message },
       { status: 500 }
     );
   }
 }
-    

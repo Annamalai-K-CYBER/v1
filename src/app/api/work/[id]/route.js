@@ -1,28 +1,55 @@
-import { connectDB } from "@/lib/db";
-import Work from "@/models/Work";
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 
-export async function DELETE(req, { params }) {
-  await connectDB();
-  const { id } = params;
+export const runtime = "nodejs";
 
-  await Work.findByIdAndDelete(id);
+// ✅ DB Connection
+async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return;
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbsdb" });
+}
 
-  const works = await Work.find();
-  const totals = {
-    totalWorks: works.length,
-    completed: 0,
-    doing: 0,
-    notYetStarted: 0,
-  };
+// ✅ Schema & Model
+const StatusSchema = new mongoose.Schema({
+  userId: String,
+  username: String,
+  email: String,
+  state: { type: String, default: "not yet started" },
+});
 
-  works.forEach((w) => {
-    w.status?.forEach((s) => {
-      if (s.state === "completed") totals.completed++;
-      else if (s.state === "doing") totals.doing++;
-      else totals.notYetStarted++;
-    });
-  });
+const WorkSchema = new mongoose.Schema(
+  {
+    subject: String,
+    work: String,
+    deadline: String,
+    fileUrl: String,
+    addedBy: String,
+    status: [StatusSchema],
+  },
+  { timestamps: true }
+);
 
-  return NextResponse.json({ success: true, totals });
+const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
+
+// ✅ GET One Work
+export async function GET(_, { params }) {
+  try {
+    await connectDB();
+    const work = await Work.findById(params.id);
+    if (!work) return NextResponse.json({ message: "Not found" }, { status: 404 });
+    return NextResponse.json(work);
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// ✅ DELETE One Work
+export async function DELETE(_, { params }) {
+  try {
+    await connectDB();
+    await Work.findByIdAndDelete(params.id);
+    return NextResponse.json({ message: "Deleted successfully" });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }

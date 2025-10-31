@@ -11,85 +11,88 @@ export default function AboutPage() {
   return (
     <main className="relative min-h-screen flex flex-col items-center justify-start overflow-hidden bg-gradient-to-br from-indigo-700 via-purple-700 to-pink-600 text-white">
       {/* 🌟 Navbar */}
-      <nav className="flex flex-col items-center justify-center px-6 py-4 bg-white/10 backdrop-blur-xl sticky top-0 z-50 shadow-xl border-b border-white/10 transition-all duration-300">
-        {/* Logo + Subtitle */}
-        <div className="flex flex-col items-center justify-center mb-2">
-          <h1 className="text-3xl font-extrabold tracking-wide drop-shadow-md">
-            CSBS<span className="text-amber-300"> Hub</span>
-          </h1>
-          <p className="text-sm text-white/80 font-medium tracking-wide">
-            A place for students, by students 🎓
-          </p>
-        </div>
-
-        {/* Desktop Menu */}
-        <div className="hidden md:flex space-x-10 text-lg font-medium justify-center items-center mt-2">
-          {[
-            { name: "Home", link: "/" },
-            { name: "About", link: "/about" },
-            { name: "Services", link: "/Services" },
-            { name: "Gallery", link: "/gallery" },
-            { name: "Contact", link: "/contact" },
-          ].map((item) => (
-            <Link
-              key={item.name}
-              href={item.link}
-              className="hover:text-amber-300 transition relative after:absolute after:w-0 after:h-[2px] after:bg-amber-300 after:left-0 after:-bottom-1 hover:after:w-full after:transition-all after:duration-300"
-            >
-              {item.name}
-            </Link>
-          ))}
-          <Link
-            href="/login"
-            className="bg-amber-400 text-black px-4 py-2 rounded-xl font-semibold hover:bg-amber-300 transition shadow-md hover:shadow-yellow-400/40"
-          >
-            Login
-          </Link>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden text-white absolute right-6 top-5 focus:outline-none"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? <X size={26} /> : <Menu size={26} />}
-        </button>
-      </nav>
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="md:hidden flex flex-col bg-white/10 backdrop-blur-lg text-center py-6 space-y-5 text-lg font-medium shadow-xl border-b border-white/10"
-        >
-          {[
-            { name: "Home", link: "/" },
-            { name: "About", link: "/about" },
-            { name: "Services", link: "/services" },
-            { name: "Gallery", link: "/gallery" },
-            { name: "Contact", link: "/contact" },
-          ].map((item) => (
-            <Link
-              key={item.name}
-              href={item.link}
-              onClick={() => setMenuOpen(false)}
-              className="hover:text-amber-300 transition"
-            >
-              {item.name}
-            </Link>
-          ))}
-          <Link
-            href="/login"
-            onClick={() => setMenuOpen(false)}
-            className="bg-amber-400 text-black px-5 py-2 rounded-lg font-semibold hover:bg-amber-300 transition mx-auto w-2/3 shadow-md"
-          >
-            Login
-          </Link>
-        </motion.div>
-      )}
-
+      {/* 🌟 NAVBAR */}
+            <nav className="w-full bg-white/10 backdrop-blur-xl sticky top-0 z-50 shadow-xl border-b border-white/10 transition-all duration-300">
+              <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
+                {/* ✅ Logo Section */}
+                <div className="flex flex-col items-start">
+                  <h1 className="text-2xl md:text-3xl font-extrabold tracking-wide drop-shadow-md">
+                    CSBS<span className="text-amber-300"> SYNC</span>
+                  </h1>
+                  <p className="text-xs md:text-sm text-white/80 font-medium tracking-wide">
+                    A place for students, by students 🎓
+                  </p>
+                </div>
+      
+                {/* ✅ Desktop Menu */}
+                <div className="hidden md:flex space-x-10 text-lg font-medium items-center">
+                  {[
+                    { name: "Home", link: "/" },
+                    { name: "About", link: "/about" },{ name: "Services", link: "/services" },
+                    { name: "Gallery", link: "/gallery" },
+                    { name: "Contact", link: "/contact" },
+                  ].map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.link}
+                      className="hover:text-amber-300 transition relative after:absolute after:w-0 after:h-[2px] after:bg-amber-300 after:left-0 after:-bottom-1 hover:after:w-full after:transition-all after:duration-300"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                  <Link
+                    href="/login"
+                    className="bg-amber-400 text-black px-4 py-2 rounded-xl font-semibold hover:bg-amber-300 transition shadow-md hover:shadow-yellow-400/40"
+                  >
+                    Login
+                  </Link>
+                </div>
+      
+                {/* ✅ Mobile Menu Button */}
+                <button
+                  className="md:hidden text-white focus:outline-none"
+                  onClick={() => setMenuOpen(!menuOpen)}
+                  aria-label="Toggle menu"
+                >
+                  {menuOpen ? <X size={28} /> : <Menu size={28} />}
+                </button>
+              </div>
+      
+              {/* ✅ Mobile Dropdown */}
+              {menuOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="md:hidden flex flex-col bg-white/15 backdrop-blur-2xl text-center py-4 space-y-4 text-base font-medium border-t border-white/10"
+                >
+                  {[
+                    { name: "Home", link: "/" },
+                    { name: "About", link: "/about" },
+                    { name: "Services", link: "/services" },
+                    { name: "Gallery", link: "/gallery" },
+                    { name: "Contact", link: "/contact" },
+                  ].map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.link}
+                      onClick={() => setMenuOpen(false)}
+                      className="hover:text-amber-300 transition"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                  <Link
+                    href="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="bg-amber-400 text-black px-5 py-2 rounded-lg font-semibold hover:bg-amber-300 transition mx-auto w-2/3 shadow-md"
+                  >
+                    Login
+                  </Link>
+                </motion.div>
+              )}
+            </nav>
+      
       {/* 🌈 About Content */}
       <section className="relative z-10 max-w-5xl mx-auto mt-32 px-6 text-center space-y-10">
         <h1 className="text-5xl md:text-7xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-300 via-pink-300 to-cyan-300 drop-shadow-lg">

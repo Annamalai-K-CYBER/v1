@@ -66,7 +66,7 @@ export default function Home() {
           {[
             { name: "Home", link: "/" },
             { name: "About", link: "/about" },
-            { name: "Department", link: "/department" },
+            { name: "Services", link: "/services" },
             { name: "Gallery", link: "/gallery" },
             { name: "Contact", link: "/contact" },
           ].map((item) => (

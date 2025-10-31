@@ -1,35 +1,55 @@
-import { connectDB } from "@/lib/db";
-import Work from "@/models/Work";
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 
-export async function POST(req, { params }) {
-  await connectDB();
-  const { id } = params;
-  const { userId, username, email, state } = await req.json();
+export const runtime = "nodejs";
 
-  const work = await Work.findById(id);
-  if (!work) return NextResponse.json({ success: false, message: "Work not found" });
+// ✅ DB Connection
+async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return;
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbsdb" });
+}
 
-  const existing = work.status.find((s) => s.userId === userId);
-  if (existing) existing.state = state;
-  else work.status.push({ userId, username, email, state });
+// ✅ Schema & Model
+const StatusSchema = new mongoose.Schema({
+  userId: String,
+  username: String,
+  email: String,
+  state: { type: String, default: "not yet started" },
+});
 
-  await work.save();
+const WorkSchema = new mongoose.Schema(
+  {
+    subject: String,
+    work: String,
+    deadline: String,
+    fileUrl: String,
+    addedBy: String,
+    status: [StatusSchema],
+  },
+  { timestamps: true }
+);
 
-  const works = await Work.find();
-  const totals = {
-    totalWorks: works.length,
-    completed: 0,
-    doing: 0,
-    notYetStarted: 0,
-  };
-  works.forEach((w) => {
-    w.status?.forEach((s) => {
-      if (s.state === "completed") totals.completed++;
-      else if (s.state === "doing") totals.doing++;
-      else totals.notYetStarted++;
-    });
-  });
+const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
 
-  return NextResponse.json({ success: true, work, totals });
+// ✅ PATCH — Update status
+export async function PATCH(req, { params }) {
+  try {
+    await connectDB();
+    const { userId, state } = await req.json();
+
+    const work = await Work.findById(params.id);
+    if (!work) return NextResponse.json({ message: "Work not found" }, { status: 404 });
+
+    const userStatus = work.status.find((s) => s.userId === userId);
+    if (userStatus) {
+      userStatus.state = state;
+    } else {
+      work.status.push({ userId, state });
+    }
+
+    await work.save();
+    return NextResponse.json({ message: "Status updated", work });
+  } catch (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }

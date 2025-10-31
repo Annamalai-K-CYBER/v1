@@ -1,33 +1,76 @@
-import { connectDB } from "@/lib/db";
-import Work from "@/models/Work";
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
+import ImageKit from "imagekit";
 
+export const runtime = "nodejs";
+
+// ✅ DB Connection
+async function connectDB() {
+  if (mongoose.connection.readyState >= 1) return;
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbsdb" });
+}
+
+// ✅ Schema & Model
+const StatusSchema = new mongoose.Schema({
+  userId: String,
+  username: String,
+  email: String,
+  state: { type: String, default: "not yet started" },
+});
+
+const WorkSchema = new mongoose.Schema(
+  {
+    subject: String,
+    work: String,
+    deadline: String,
+    fileUrl: String,
+    addedBy: String,
+    status: [StatusSchema],
+  },
+  { timestamps: true }
+);
+
+const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
+
+// ✅ ImageKit Setup
+const imagekit = new ImageKit({
+  publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
+  privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
+});
+
+// ✅ POST — Create Work
 export async function POST(req) {
   try {
     await connectDB();
     const body = await req.json();
+    const { subject, work, deadline, addedBy, fileBase64, status } = body;
 
-    const newWork = await Work.create(body);
-    const works = await Work.find();
+    if (!subject || !work || !deadline)
+      return NextResponse.json({ message: "Missing required fields" }, { status: 400 });
 
-    const totals = {
-      totalWorks: works.length,
-      completed: 0,
-      doing: 0,
-      notYetStarted: 0,
-    };
-
-    works.forEach((w) => {
-      w.status?.forEach((s) => {
-        if (s.state === "completed") totals.completed++;
-        else if (s.state === "doing") totals.doing++;
-        else totals.notYetStarted++;
+    let fileUrl = "";
+    if (fileBase64) {
+      const uploaded = await imagekit.upload({
+        file: fileBase64,
+        fileName: `${subject}-${Date.now()}.jpg`,
+        folder: "/works",
       });
+      fileUrl = uploaded.url;
+    }
+
+    const newWork = await Work.create({
+      subject,
+      work,
+      deadline,
+      addedBy,
+      fileUrl,
+      status: status || [],
     });
 
-    return NextResponse.json({ success: true, work: newWork, totals });
-  } catch (err) {
-    console.error("❌ Add Work Error:", err);
-    return NextResponse.json({ success: false, message: "Failed to add work" });
+    return NextResponse.json({ message: "Work added", work: newWork });
+  } catch (error) {
+    console.error("❌ Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
