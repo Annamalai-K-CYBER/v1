@@ -1,5 +1,12 @@
 import mongoose from "mongoose";
 
+const StatusSchema = new mongoose.Schema({
+  userId: String,
+  username: String,
+  email: String,
+  state: { type: String, default: "not yet started" },
+});
+
 const WorkSchema = new mongoose.Schema(
   {
     subject: String,
@@ -7,14 +14,7 @@ const WorkSchema = new mongoose.Schema(
     deadline: String,
     fileUrl: String,
     addedBy: String,
-    status: [
-      {
-        userId: String,
-        username: String,
-        email: String,
-        state: { type: String, default: "not yet started" },
-      },
-    ],
+    status: [StatusSchema],
   },
   { timestamps: true }
 );
