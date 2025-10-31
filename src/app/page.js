@@ -6,7 +6,8 @@ export default function Home() {
   const [isLive, setIsLive] = useState(false);
 
   useEffect(() => {
-    const target = new Date("2025-10-31T16:30:00").getTime();
+    // ⏰ Updated launch time — 5:30 PM
+    const target = new Date("2025-10-31T17:30:00").getTime();
 
     const timer = setInterval(() => {
       const now = Date.now();
@@ -47,7 +48,11 @@ export default function Home() {
           <span className="font-bold text-pink-300">study materials</span>, and{" "}
           <span className="font-bold text-cyan-300">announcements</span>.
         </p>
+        <p className="mt-10 text-xl md:text-3xl font-semibold text-yellow-300 my-6">
+              🚧 Due to technical issues, the launch has been postponed to 5:30 PM.
+            </p>
 
+        {/* Show countdown or live message */}
         {isLive ? (
           <div className="flex flex-col items-center space-y-6">
             <p className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
@@ -61,33 +66,38 @@ export default function Home() {
             </a>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto">
-            {["d", "h", "m", "s"].map((unit) => (
-              <div
-                key={unit}
-                className="group relative p-6 md:p-8 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-purple-500/50"
-              >
-                <div className="text-4xl md:text-5xl font-bold text-white">
-                  {String(timeLeft[unit]).padStart(2, "0")}
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 max-w-3xl mx-auto">
+              {["d", "h", "m", "s"].map((unit) => (
+                <div
+                  key={unit}
+                  className="group relative p-6 md:p-8 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-2xl transition-all duration-300 hover:scale-110 hover:shadow-purple-500/50"
+                >
+                  <div className="text-4xl md:text-5xl font-bold text-white">
+                    {String(timeLeft[unit]).padStart(2, "0")}
+                  </div>
+                  <div className="mt-2 text-sm md:text-base uppercase tracking-wider text-white/70">
+                    {unit === "d"
+                      ? "Days"
+                      : unit === "h"
+                      ? "Hours"
+                      : unit === "m"
+                      ? "Minutes"
+                      : "Seconds"}
+                  </div>
                 </div>
-                <div className="mt-2 text-sm md:text-base uppercase tracking-wider text-white/70">
-                  {unit === "d"
-                    ? "Days"
-                    : unit === "h"
-                    ? "Hours"
-                    : unit === "m"
-                    ? "Minutes"
-                    : "Seconds"}
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+
+            {/* ⚠️ Technical issue notice */}
+            
+          </>
         )}
 
         <p className="mt-12 text-base md:text-lg text-white/80">
           Launching on{" "}
           <span className="font-bold text-yellow-300">
-            October 31, 2025 at 4:30 PM
+            October 31, 2025 at 5:30 PM
           </span>{" "}
           🎉
         </p>
