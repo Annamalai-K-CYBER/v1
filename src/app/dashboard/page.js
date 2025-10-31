@@ -13,17 +13,17 @@ export default function DashboardHome() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
         {[
-          { title: "Study", color: "from-blue-500 to-cyan-400" },
-          { title: "Material", color: "from-purple-500 to-pink-400" },
-          { title: "Work", color: "from-green-500 to-teal-400" },
-          { title: "Announcement", color: "from-orange-500 to-yellow-400" },
+          { title: "Study", color: "from-blue-500 to-cyan-400",link:"/dashboard/study" },
+          { title: "Material", color: "from-purple-500 to-pink-400",link:"/dashboard/material" },
+          { title: "Work", color: "from-green-500 to-teal-400",link:"/dashboard/work" },
+          { title: "Announcement", color: "from-orange-500 to-yellow-400",link:"/dashboard/announcement" },
         ].map((item) => (
-          <div
+          <a href={item.link}><div
             key={item.title}
             className={`p-8 rounded-3xl shadow-lg bg-gradient-to-r ${item.color} text-white font-bold text-lg hover:scale-105 hover:shadow-2xl transform transition`}
           >
             {item.title}
-          </div>
+          </div></a>
         ))}
       </div>
     </div>

@@ -51,9 +51,18 @@ export default function DashboardLayout({ children }) {
       {/* Navbar */}
       <header className="bg-white/70 backdrop-blur-md border-b border-indigo-100 shadow-md sticky top-0 z-50">
         <div className="flex justify-between items-center px-6 md:px-12 py-4">
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm">
-            CSBS Sync
-          </h1>
+          <div className="flex flex-col">
+            <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 drop-shadow-sm">
+              CSBS Sync
+            </h1>
+
+            {/* 👇 Mobile-only username display when menu is closed */}
+            {!menuOpen && (
+              <h1 className="text-sm text-gray-600 mt-1 md:hidden">
+                {user?.username ? `Hi, ${user.username} 👋` : "Loading..."}
+              </h1>
+            )}
+          </div>
 
           {/* Desktop Menu */}
           <nav className="hidden md:flex gap-8">
@@ -74,9 +83,9 @@ export default function DashboardLayout({ children }) {
 
           {/* Right Side */}
           <div className="hidden md:flex items-center gap-4">
-            <span className="text-sm text-gray-500 italic">
+            <h1 className="text-lg text-gray-700 italic my-6">
               {user?.username ? `Hi, ${user.username} 👋` : "Loading..."}
-            </span>
+            </h1>
             <button
               onClick={handleLogout}
               className="bg-indigo-600 text-white font-semibold px-4 py-2 rounded-xl shadow hover:bg-indigo-700 transition active:scale-95"
