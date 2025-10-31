@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // ✅ Redirect if already logged in
+  // 🔹 Redirect if already logged in
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -40,7 +40,12 @@ export default function LoginPage() {
       }
 
       if (data?.token) {
+        // ✅ Store token & role in localStorage
         localStorage.setItem("token", data.token);
+        if (data?.user?.role) {
+          localStorage.setItem("role", data.user.role);
+        }
+
         router.push("/dashboard");
       } else {
         setError("No token received from server");
