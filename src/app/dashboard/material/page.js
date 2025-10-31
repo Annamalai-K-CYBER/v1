@@ -90,18 +90,24 @@ export default function UploadPage() {
   // ✅ Delete Material (Admin only)
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this material?")) return;
+
     try {
-      const res = await fetch(`/api/materials/${id}`, { method: "DELETE" });
+      const res = await fetch("/api/materials/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+
       const data = await res.json();
       if (data.success) {
-        alert("Material deleted successfully!");
-        fetchMaterials();
+        alert("✅ Material deleted successfully!");
+        fetchMaterials(); // Refresh list
       } else {
-        alert(data.message || "Delete failed!");
+        alert("⚠️ " + (data.message || "Failed to delete"));
       }
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Server error while deleting.");
+      alert("❌ Server error while deleting");
     }
   };
 
@@ -232,7 +238,7 @@ export default function UploadPage() {
                 {isAdmin && (
                   <button
                     onClick={() => handleDelete(mat._id)}
-                    className="w-full mt-3 py-2 rounded-md bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition"
+                    className="mt-3 w-full py-2 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition"
                   >
                     🗑 Delete
                   </button>
