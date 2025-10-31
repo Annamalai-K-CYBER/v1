@@ -32,7 +32,7 @@ export default function ProfilePage() {
     }
 
     try {
-      const res = await fetch("https://csbssync.vercel.app/api/change-password", {
+      const res = await fetch("/api/change-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

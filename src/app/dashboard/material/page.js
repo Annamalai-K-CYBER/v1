@@ -17,7 +17,7 @@ export default function UploadPage() {
   const fetchMaterials = async () => {
     try {
       setLoading(true);
-      const res = await fetch("https://csbssync.vercel.app/api/materials");
+      const res = await fetch("/api/materials");
       const data = await res.json();
       setMaterials(Array.isArray(data) ? data : data.data || []);
     } catch (err) {
@@ -65,7 +65,7 @@ export default function UploadPage() {
     formData.append("uploadDate", new Date().toISOString());
 
     try {
-      const res = await fetch("https://csbssync.vercel.app/api/upload", {
+      const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
       });
