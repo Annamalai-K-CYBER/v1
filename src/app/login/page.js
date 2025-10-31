@@ -23,7 +23,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("https://csbssync.vercel.app/api/login", {
+      const res = await fetch("/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
