@@ -11,10 +11,13 @@ let isConnected = false;
 
 async function connectDB() {
   if (isConnected) return;
+
   if (!MONGODB_URI) throw new Error("⚠️ MONGODB_URI not found in env.");
-  await mongoose.connect(MONGODB_URI);
+
+  // ✅ Explicitly specify your database name
+  await mongoose.connect(MONGODB_URI, { dbName: "csbs_portal" });
   isConnected = true;
-  console.log("✅ MongoDB Connected (materials route)");
+  console.log("✅ MongoDB Connected → csbs_portal (materials route)");
 }
 
 // ======================
@@ -41,7 +44,9 @@ const Material =
 export async function GET() {
   try {
     await connectDB();
+
     const materials = await Material.find().sort({ uploadDate: -1 });
+
     return NextResponse.json(materials);
   } catch (error) {
     console.error("❌ Error fetching materials:", error);

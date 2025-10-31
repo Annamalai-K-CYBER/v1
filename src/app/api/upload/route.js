@@ -14,9 +14,11 @@ let isConnected = false;
 async function connectDB() {
   if (isConnected) return;
   if (!MONGODB_URI) throw new Error("⚠️ MONGODB_URI not found in env.");
-  await mongoose.connect(MONGODB_URI);
+
+  // ✅ Explicitly connect to the intended database
+  await mongoose.connect(MONGODB_URI, { dbName: "csbs_portal" });
   isConnected = true;
-  console.log("✅ MongoDB Connected (upload route)");
+  console.log("✅ MongoDB Connected → csbs_portal (upload route)");
 }
 
 // ======================
@@ -60,11 +62,12 @@ export async function POST(req) {
     const subject = formData.get("subject");
     const uploadDate = formData.get("uploadDate");
 
-    if (!file || !matname || !subject)
+    if (!file || !matname || !subject) {
       return NextResponse.json(
         { success: false, message: "Missing required fields!" },
         { status: 400 }
       );
+    }
 
     // ✅ Convert file to base64
     const arrayBuffer = await file.arrayBuffer();
