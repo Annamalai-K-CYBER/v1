@@ -192,7 +192,7 @@ export default function AnnouncementsPage() {
                               "https://img.icons8.com/cute-clipart/512/no-image.png"
                             }
                             alt={a.topic}
-                            className="w-full h-full object-cover"
+                            className="h-full object-cover"
                           />
                         </div>
                         <div className="p-4 flex flex-col flex-grow justify-between">
