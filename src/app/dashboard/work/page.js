@@ -275,7 +275,7 @@ export default function WorkPage() {
                       rel="noreferrer"
                       className="text-blue-500 underline text-xs block mt-1"
                     >
-                      📎 View File
+                      👀 View File 👀
                     </a>
                   )}
                   <p className="text-xs text-gray-400 mt-1">
