@@ -8,7 +8,7 @@ if (!MONGODB_URI) throw new Error("Missing MONGODB_URI");
 let isConnected = false;
 async function connectDB() {
   if (isConnected) return;
-  await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI, { dbName: "csbsdb" });
   isConnected = true;
 }
 

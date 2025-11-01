@@ -11,7 +11,7 @@ if (!MONGODB_URI) throw new Error("❌ Missing MONGODB_URI in env");
 let isConnected = false;
 async function connectDB() {
   if (isConnected) return;
-  await mongoose.connect(MONGODB_URI);
+  await mongoose.connect(MONGODB_URI, { dbName: "csbs_portal" });
   isConnected = true;
   console.log("✅ MongoDB connected (inline)");
 }
