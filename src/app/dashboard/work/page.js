@@ -316,10 +316,10 @@ export default function WorkPage() {
                               ? "bg-yellow-600"
                               : "bg-gray-700"
                             : btn.key === "completed"
-                            ? "bg-green-500"
+                            ? "bg-green-400"
                             : btn.key === "doing"
-                            ? "bg-yellow-500"
-                            : "bg-gray-500"
+                            ? "bg-yellow-400"
+                            : "bg-gray-400"
                         }`}
                       >
                         {btn.label}
