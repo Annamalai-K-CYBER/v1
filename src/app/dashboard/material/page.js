@@ -9,9 +9,9 @@ export default function UploadPage() {
   const [materialName, setMaterialName] = useState("");
   const [subject, setSubject] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [uploadedUrl, setUploadedUrl] = useState("");
   const [materials, setMaterials] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openSubject, setOpenSubject] = useState(null);
 
   // ✅ Fetch Materials
   const fetchMaterials = async () => {
@@ -45,7 +45,7 @@ export default function UploadPage() {
     }
   }, []);
 
-  // ✅ Upload
+  // ✅ Upload New Material
   const handleUpload = async () => {
     if (!file || !materialName || !subject) {
       alert("Please fill all fields and select a file!");
@@ -71,7 +71,6 @@ export default function UploadPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setUploadedUrl(data.url);
         setMaterialName("");
         setSubject("");
         setFile(null);
@@ -90,18 +89,16 @@ export default function UploadPage() {
   // ✅ Delete Material (Admin only)
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this material?")) return;
-
     try {
       const res = await fetch("/api/materials/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-
       const data = await res.json();
       if (data.success) {
         alert("✅ Material deleted successfully!");
-        fetchMaterials(); // Refresh list
+        fetchMaterials();
       } else {
         alert("⚠️ " + (data.message || "Failed to delete"));
       }
@@ -111,7 +108,7 @@ export default function UploadPage() {
     }
   };
 
-  // ✅ Open link safely
+  // ✅ Open Material
   const handleViewClick = (url) => {
     if (!url) {
       alert("No valid link found!");
@@ -125,6 +122,15 @@ export default function UploadPage() {
     }
   };
 
+  // ✅ Group materials by subject
+  const grouped = materials.reduce((acc, mat) => {
+    const subj = mat.subject || "Uncategorized";
+    if (!acc[subj]) acc[subj] = [];
+    acc[subj].push(mat);
+    return acc;
+  }, {});
+
+  // ✅ UI Rendering
   return (
     <div className="min-h-screen w-full flex flex-col items-center py-10 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-100">
       {/* Header */}
@@ -180,76 +186,97 @@ export default function UploadPage() {
 
       {/* Materials List */}
       <div className="w-[95%] max-w-6xl bg-white shadow p-8 rounded-xl border border-gray-200">
-        <h2 className="text-2xl font-bold text-blue-700 mb-6 text-center">
-          Available Materials
-        </h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-blue-700">Available Materials</h2>
+          <button
+            onClick={fetchMaterials}
+            className="text-sm bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+          >
+            🔄 Refresh
+          </button>
+        </div>
 
         {loading ? (
           <p className="text-center text-gray-500 animate-pulse">Loading...</p>
         ) : materials.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {materials.map((mat) => (
+          <div className="space-y-4">
+            {Object.keys(grouped).map((subject) => (
               <div
-                key={mat._id}
-                className="relative bg-white border border-gray-200 rounded-xl p-6 shadow-sm hover:shadow-md transition-all"
+                key={subject}
+                className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-100 rounded-xl shadow-sm"
               >
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {mat.matname}
-                </h3>
-
-                <p className="text-sm text-blue-600 font-medium mb-1">
-                  Subject: {mat.subject || "N/A"}
-                </p>
-
-                <p className="text-xs text-gray-500 mb-2">
-                  Uploaded on:{" "}
-                  {mat.uploadDate
-                    ? new Date(mat.uploadDate).toLocaleDateString()
-                    : "N/A"}
-                </p>
-
-                <img
-                  src={
-                    ["png", "jpg", "jpeg"].includes(
-                      mat.format?.toLowerCase?.() || ""
-                    )
-                      ? "https://img.icons8.com/fluency/96/image.png"
-                      : "https://img.icons8.com/fluency/96/document.png"
+                {/* Subject Header */}
+                <div
+                  onClick={() =>
+                    setOpenSubject(openSubject === subject ? null : subject)
                   }
-                  alt="icon"
-                  className="w-16 h-16 mx-auto my-3"
-                />
-
-                <p className="text-sm text-gray-600 mb-3 text-center">
-                  Uploaded by:{" "}
-                  <span className="font-medium text-gray-800">
-                    {mat.name || "Unknown"}
-                  </span>
-                </p>
-
-                <button
-                  onClick={() => handleViewClick(mat.link)}
-                  className="w-full py-2 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 transition"
+                  className="cursor-pointer flex justify-between items-center px-6 py-4"
                 >
-                  🔗 View / Download
-                </button>
+                  <h3 className="text-lg font-semibold text-blue-700">
+                    📘 {subject}
+                  </h3>
+                  <span className="text-gray-500">
+                    {openSubject === subject ? "▲" : "▼"}
+                  </span>
+                </div>
 
-                {/* Delete button only for admin */}
-                {isAdmin && (
-                  <button
-                    onClick={() => handleDelete(mat._id)}
-                    className="mt-3 w-full py-2 rounded-lg bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition"
-                  >
-                    🗑 Delete
-                  </button>
+                {/* Dropdown Material List */}
+                {openSubject === subject && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6 border-t border-blue-100 bg-white rounded-b-xl">
+                    {grouped[subject].map((mat) => (
+                      <div
+                        key={mat._id}
+                        className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+                      >
+                        <h4 className="text-base font-semibold text-gray-800 mb-1">
+                          {mat.matname}
+                        </h4>
+                        <p className="text-xs text-gray-500 mb-1">
+                          Uploaded:{" "}
+                          {mat.uploadDate
+                            ? new Date(mat.uploadDate).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                        <p className="text-xs text-gray-500 mb-2">
+                          By: {mat.name || "Unknown"}
+                        </p>
+
+                        <img
+                          src={
+                            ["png", "jpg", "jpeg"].includes(
+                              mat.format?.toLowerCase?.() || ""
+                            )
+                              ? "https://img.icons8.com/fluency/96/image.png"
+                              : "https://img.icons8.com/fluency/96/document.png"
+                          }
+                          alt="icon"
+                          className="w-12 h-12 mx-auto mb-3"
+                        />
+
+                        <button
+                          onClick={() => handleViewClick(mat.link)}
+                          className="w-full py-2 rounded-md bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold hover:opacity-90 transition"
+                        >
+                          🔗 View / Download
+                        </button>
+
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleDelete(mat._id)}
+                            className="mt-2 w-full py-2 rounded-md bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition"
+                          >
+                            🗑 Delete
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500">
-            No materials available yet.
-          </p>
+          <p className="text-center text-gray-500">No materials available yet.</p>
         )}
       </div>
     </div>
