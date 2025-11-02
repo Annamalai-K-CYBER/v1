@@ -16,7 +16,7 @@ async function connectDB() {
 
   try {
     const db = await mongoose.connect(MONGODB_URI, {
-      dbName: "csbsdb",
+      dbName: "csbs_sync",
     });
     isConnected = db.connections[0].readyState === 1;
     console.log("✅ MongoDB Connected");

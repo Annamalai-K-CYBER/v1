@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 // ✅ DB Connection
 async function connectDB() {
   if (mongoose.connection.readyState >= 1) return;
-  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbsdb" });
+  await mongoose.connect(process.env.MONGODB_URI, { dbName: "csbs_sync" });
 }
 
 // ✅ Schema & Model

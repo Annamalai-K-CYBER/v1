@@ -5,7 +5,7 @@ const MONGODB_URI = process.env.MONGODB_URI;
 let isConnected = false;
 async function connectDB() {
   if (isConnected) return;
-  await mongoose.connect(MONGODB_URI, { dbName: "csbsdb" });
+  await mongoose.connect(MONGODB_URI, { dbName: "csbs_sync" });
   isConnected = true;
 }
 
