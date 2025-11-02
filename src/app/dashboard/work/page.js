@@ -24,7 +24,7 @@ export default function WorkPage() {
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Decode JWT once
+  // ✅ Decode JWT
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -40,7 +40,7 @@ export default function WorkPage() {
     }
   }, []);
 
-  // ✅ Format deadline as dd-mm-yyyy
+  // ✅ Format date to dd-mm-yyyy
   const formatDate = (dateString) => {
     if (!dateString) return "—";
     const d = new Date(dateString);
@@ -50,7 +50,7 @@ export default function WorkPage() {
     return `${day}-${month}-${year}`;
   };
 
-  // ✅ Fetch all works + compute totals + sort by deadline
+  // ✅ Fetch all works
   const fetchWorks = async () => {
     if (!userId) return;
     setLoading(true);
@@ -61,14 +61,10 @@ export default function WorkPage() {
       if (data.success) {
         let worksData = data.works || [];
 
-        // Sort by nearest deadline first
-        worksData = worksData.sort((a, b) => {
-          const da = new Date(a.deadline);
-          const db = new Date(b.deadline);
-          return da - db;
-        });
+        // Sort by deadline ascending
+        worksData = worksData.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
 
-        // Totals for this user
+        // Calculate totals
         let completed = 0,
           doing = 0,
           notYetStarted = 0;
@@ -99,7 +95,7 @@ export default function WorkPage() {
     fetchWorks();
   }, [userId]);
 
-  // ✅ Upload file to backend
+  // ✅ Upload file
   const uploadFile = async () => {
     if (!file) return "";
     setUploading(true);
@@ -120,7 +116,7 @@ export default function WorkPage() {
     }
   };
 
-  // ✅ Add work (admin)
+  // ✅ Add work
   const handleAddWork = async () => {
     if (!subject || !workText || !deadline) return alert("Please fill all fields");
     const fileUrl = file ? await uploadFile() : "";
@@ -150,25 +146,30 @@ export default function WorkPage() {
     }
   };
 
-  // ✅ Update user status
+  // ✅ Update status (works now)
   const handleStatusChange = async (workId, state) => {
     const token = localStorage.getItem("token");
     if (!token) return alert("Please login first");
+
+    // Normalize "not started"
+    const normalizedState =
+      state === "not started" || state === "not yet started" ? "notYetStarted" : state;
 
     try {
       const res = await fetch(`/api/work/status/${workId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, username, email, state }),
+        body: JSON.stringify({ userId, username, email, state: normalizedState }),
       });
       const data = await res.json();
       if (data.success) fetchWorks();
+      else alert("Failed to update status");
     } catch (err) {
       console.error("Status update error:", err);
     }
   };
 
-  // ✅ Delete work (admin only)
+  // ✅ Delete work
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this work?")) return;
     try {
@@ -179,7 +180,7 @@ export default function WorkPage() {
     }
   };
 
-  // ✅ UI rendering
+  // ✅ UI Rendering
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-6 px-3 flex flex-col items-center">
       {/* Totals */}
@@ -201,7 +202,7 @@ export default function WorkPage() {
         ))}
       </div>
 
-      {/* Add work (admin only) */}
+      {/* Add Work (Admin) */}
       {isAdmin && (
         <div className="bg-white rounded-xl shadow-md p-5 w-full max-w-md border mb-8">
           <h2 className="text-lg font-semibold text-indigo-700 mb-3">➕ Add Work</h2>
@@ -265,8 +266,7 @@ export default function WorkPage() {
               });
 
               const myStatus =
-                (w.status || []).find((s) => s.userId === userId)?.state ||
-                "not yet started";
+                (w.status || []).find((s) => s.userId === userId)?.state || "notYetStarted";
 
               return (
                 <div
@@ -298,30 +298,31 @@ export default function WorkPage() {
                     <div className="text-rose-600">🕒 {counts.notYetStarted}</div>
                   </div>
 
+                  {/* Status Buttons (working now) */}
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {["completed", "doing", "not yet started"].map((state) => (
+                    {[
+                      { key: "completed", label: "✅ Completed" },
+                      { key: "doing", label: "⚙️ Doing" },
+                      { key: "notYetStarted", label: "🕒 Not Started" },
+                    ].map((btn) => (
                       <button
-                        key={state}
-                        onClick={() => handleStatusChange(w._id, state)}
+                        key={btn.key}
+                        onClick={() => handleStatusChange(w._id, btn.key)}
                         className={`flex-1 text-xs py-1 rounded-md text-white ${
-                          myStatus === state
-                            ? state === "completed"
+                          myStatus === btn.key
+                            ? btn.key === "completed"
                               ? "bg-green-700"
-                              : state === "doing"
+                              : btn.key === "doing"
                               ? "bg-yellow-600"
                               : "bg-gray-700"
-                            : state === "completed"
+                            : btn.key === "completed"
                             ? "bg-green-500"
-                            : state === "doing"
+                            : btn.key === "doing"
                             ? "bg-yellow-500"
                             : "bg-gray-500"
                         }`}
                       >
-                        {state === "completed"
-                          ? "✅ Completed"
-                          : state === "doing"
-                          ? "⚙️ Doing"
-                          : "🕒 Not Started"}
+                        {btn.label}
                       </button>
                     ))}
                     {isAdmin && (
