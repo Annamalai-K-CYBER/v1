@@ -82,30 +82,32 @@ export default function AnnouncementsPage() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 px-3 py-6 sm:px-6">
-      <div className="max-w-5xl mx-auto flex flex-col gap-8">
-        <h1 className="text-[20px] sm:text-3xl md:text-4xl font-extrabold text-center text-indigo-700 drop-shadow-md">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 px-4 py-8">
+      <div className="max-w-6xl mx-auto flex flex-col gap-10">
+
+        {/* 🌟 Header */}
+        <h1 className="text-4xl font-extrabold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
           📢 Announcements
         </h1>
 
-        {/* ✅ Add Form (Admin Only) */}
+        {/* 🛠 Admin Add Form */}
         {isAdmin && (
           <form
             onSubmit={handleAdd}
-            className="bg-white/90 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-xl border border-purple-200 flex flex-col gap-4"
+            className="bg-white/60 backdrop-blur-xl border border-purple-200 rounded-2xl shadow-lg p-6 flex flex-col gap-4"
           >
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid sm:grid-cols-2 gap-4">
               <input
                 type="text"
-                placeholder="Topic"
+                placeholder="Announcement Topic"
                 value={form.topic}
                 onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
+                className="p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
               />
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
+                className="p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
               >
                 {categories.map((c) => (
                   <option key={c.name}>{c.name}</option>
@@ -114,27 +116,27 @@ export default function AnnouncementsPage() {
             </div>
 
             <textarea
-              placeholder="Details"
-              rows={3}
+              placeholder="Enter announcement details..."
+              rows={4}
               value={form.details}
               onChange={(e) => setForm({ ...form, details: e.target.value })}
-              className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
+              className="p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
 
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-              className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
+              className="p-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
             />
 
             <button
               type="submit"
               disabled={uploading}
-              className={`py-2 px-4 rounded-xl font-semibold text-white transition-all ${
+              className={`py-2 px-4 text-lg font-semibold rounded-xl text-white transition-all ${
                 uploading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90"
+                  : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-[1.02]"
               }`}
             >
               {uploading ? "Uploading..." : "Add Announcement"}
@@ -142,23 +144,24 @@ export default function AnnouncementsPage() {
           </form>
         )}
 
-        {/* ✅ Announcements Display */}
+        {/* 📚 Announcements Display */}
         {categories.map((cat) => {
           const filtered = announcements.filter((a) => a.category === cat.name);
           return (
             <div
               key={cat.name}
-              className="bg-white/80 rounded-2xl overflow-hidden shadow-lg border border-indigo-100"
+              className="bg-white/60 backdrop-blur-lg border border-indigo-100 rounded-2xl shadow-xl overflow-hidden"
             >
+              {/* 🔽 Category Header */}
               <button
                 onClick={() =>
                   setExpanded(expanded === cat.name ? null : cat.name)
                 }
-                className={`w-full flex justify-between items-center px-5 py-3 text-lg sm:text-xl font-semibold text-white bg-gradient-to-r ${cat.color}`}
+                className={`w-full flex justify-between items-center px-6 py-4 text-xl font-semibold text-white bg-gradient-to-r ${cat.color} transition-all duration-300`}
               >
-                <span className="truncate">
+                <span>
                   {cat.name}{" "}
-                  <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-lg text-sm">
+                  <span className="bg-white/30 px-3 py-0.5 rounded-full text-sm ml-2">
                     {filtered.length}
                   </span>
                 </span>
@@ -167,38 +170,43 @@ export default function AnnouncementsPage() {
                 </span>
               </button>
 
+              {/* 📦 Dropdown Content */}
               {expanded === cat.name && (
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gradient-to-b from-white to-indigo-50">
+                <div className="p-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-5 bg-gradient-to-b from-white to-indigo-50 animate-fadeIn">
                   {filtered.length === 0 ? (
-                    <p className="text-gray-500 text-center w-full py-6">
-                      No announcements in this category.
+                    <p className="col-span-full text-center text-gray-500 py-8">
+                      No announcements in this category yet.
                     </p>
                   ) : (
                     filtered.map((a) => (
                       <div
                         key={a._id}
-                        className="flex flex-col bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden"
+                        className="flex flex-col bg-white/90 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200"
                       >
-                        <img
-                          src={
-                            a.imageUrl ||
-                            "https://img.icons8.com/cute-clipart/512/no-image.png"
-                          }
-                          alt={a.topic}
-                          className="w-full h-56 object-cover"
-                        />
-                        <div className="p-4 flex flex-col justify-between flex-grow">
-                          <h3 className="font-bold text-indigo-700 text-lg mb-2">
-                            {a.topic}
-                          </h3>
-                          <p className="text-gray-700 text-sm whitespace-pre-wrap">
-                            {a.details}
-                          </p>
+                        <div className="relative h-56 w-full">
+                          <img
+                            src={
+                              a.imageUrl ||
+                              "https://img.icons8.com/cute-clipart/512/no-image.png"
+                            }
+                            alt={a.topic}
+                            className="absolute inset-0 w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="p-5 flex flex-col flex-grow justify-between">
+                          <div>
+                            <h3 className="font-bold text-xl text-indigo-700 mb-2">
+                              {a.topic}
+                            </h3>
+                            <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
+                              {a.details}
+                            </p>
+                          </div>
 
                           {isAdmin && (
                             <button
                               onClick={() => handleDelete(a._id)}
-                              className="mt-4 bg-red-500 hover:bg-red-600 text-white py-1 rounded-lg text-sm transition"
+                              className="mt-4 bg-gradient-to-r from-red-500 to-rose-500 hover:scale-[1.02] text-white py-1.5 rounded-lg text-sm transition-all"
                             >
                               Delete
                             </button>
