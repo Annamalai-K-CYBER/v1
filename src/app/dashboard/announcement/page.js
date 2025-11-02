@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { jwtDecode } from "jwt-decode"; // ✅ make sure this package is installed
+import { jwtDecode } from "jwt-decode";
 
 export default function AnnouncementsPage() {
   const [form, setForm] = useState({
@@ -12,7 +12,7 @@ export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [expanded, setExpanded] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(false); // ✅ Admin check
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const categories = [
     { name: "General", color: "from-indigo-500 to-blue-500" },
@@ -22,7 +22,6 @@ export default function AnnouncementsPage() {
     { name: "Achievements", color: "from-purple-500 to-fuchsia-500" },
   ];
 
-  // ✅ Fetch announcements
   const fetchAnnouncements = async () => {
     try {
       const res = await fetch("https://csbssync.vercel.app/api/announcements");
@@ -36,7 +35,6 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     fetchAnnouncements();
 
-    // ✅ Check if user is admin
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -48,7 +46,6 @@ export default function AnnouncementsPage() {
     }
   }, []);
 
-  // ✅ Add new announcement
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!form.topic || !form.details) return alert("Please fill all fields");
@@ -76,7 +73,6 @@ export default function AnnouncementsPage() {
     }
   };
 
-  // ✅ Delete announcement (Admin only)
   const handleDelete = async (id) => {
     if (!confirm("Delete this announcement?")) return;
     await fetch(`https://csbssync.vercel.app/api/announcements?id=${id}`, {
@@ -88,8 +84,6 @@ export default function AnnouncementsPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 px-3 py-6 sm:px-6">
       <div className="max-w-5xl mx-auto flex flex-col gap-8">
-
-        {/* ✅ Header */}
         <h1 className="text-[20px] sm:text-3xl md:text-4xl font-extrabold text-center text-indigo-700 drop-shadow-md">
           📢 Announcements
         </h1>
@@ -183,33 +177,28 @@ export default function AnnouncementsPage() {
                     filtered.map((a) => (
                       <div
                         key={a._id}
-                        className="flex flex-col overflow-hidden bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300"
+                        className="flex flex-col bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden"
                       >
-                        <div className="h-64 w-full bg-gray-100">
-                          <img
-                            src={
-                              a.imageUrl ||
-                              "https://img.icons8.com/cute-clipart/512/no-image.png"
-                            }
-                            alt={a.topic}
-                            className="w-full object-cover"
-                          />
-                        </div>
-                        <div className="p-4 flex flex-col flex-grow justify-between">
-                          <div>
-                            <h3 className="font-bold text-indigo-700 text-lg truncate">
-                              {a.topic}
-                            </h3>
-                            <p className="text-gray-700 text-sm mt-1 line-clamp-3">
-                              {a.details}
-                            </p>
-                          </div>
+                        <img
+                          src={
+                            a.imageUrl ||
+                            "https://img.icons8.com/cute-clipart/512/no-image.png"
+                          }
+                          alt={a.topic}
+                          className="w-full h-56 object-cover"
+                        />
+                        <div className="p-4 flex flex-col justify-between flex-grow">
+                          <h3 className="font-bold text-indigo-700 text-lg mb-2">
+                            {a.topic}
+                          </h3>
+                          <p className="text-gray-700 text-sm whitespace-pre-wrap">
+                            {a.details}
+                          </p>
 
-                          {/* ✅ Delete only visible for Admin */}
                           {isAdmin && (
                             <button
                               onClick={() => handleDelete(a._id)}
-                              className="mt-3 bg-red-500 hover:bg-red-600 text-white py-1 rounded-lg text-sm transition"
+                              className="mt-4 bg-red-500 hover:bg-red-600 text-white py-1 rounded-lg text-sm transition"
                             >
                               Delete
                             </button>
