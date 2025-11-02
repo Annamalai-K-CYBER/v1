@@ -9,7 +9,7 @@ let isConnected = false;
 async function connectDB() {
   if (isConnected) return;
   if (!MONGODB_URI) throw new Error("MONGODB_URI missing");
-  await mongoose.connect(MONGODB_URI, { dbName: "csbs_portal" });
+  await mongoose.connect(MONGODB_URI, { dbName: "csbs_sync" });
   isConnected = true;
 }
 
