@@ -132,7 +132,7 @@ export default function DashboardLayout({ children }) {
       </header>
 
       {/* Main Dashboard Container */}
-      <main className="max-w-6xl mx-auto px-6 md:px-10 py-10">
+      <main className="max-w-6xl mx-auto md:px-10 py-10">
         <div className="bg-white/80 backdrop-blur-lg border border-indigo-100 rounded-3xl shadow-xl p-6 md:p-10">
           {children}
         </div>
