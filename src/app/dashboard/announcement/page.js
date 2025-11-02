@@ -84,7 +84,6 @@ export default function AnnouncementsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 px-4 py-8">
       <div className="max-w-6xl mx-auto flex flex-col gap-10">
-
         {/* 🌟 Header */}
         <h1 className="text-4xl font-extrabold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
           📢 Announcements
@@ -183,16 +182,23 @@ export default function AnnouncementsPage() {
                         key={a._id}
                         className="flex flex-col bg-white/90 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200"
                       >
-                        <div className="relative h-56 w-full">
+                        {/* 🖼 Dynamic Image */}
+                        {a.imageUrl ? (
                           <img
-                            src={
-                              a.imageUrl ||
-                              "https://img.icons8.com/cute-clipart/512/no-image.png"
-                            }
+                            src={a.imageUrl}
                             alt={a.topic}
-                            className="absolute inset-0 w-full h-full object-cover"
+                            className="w-full object-contain max-h-[400px] bg-gray-50"
                           />
-                        </div>
+                        ) : (
+                          <div className="w-full bg-gray-100 flex items-center justify-center aspect-video">
+                            <img
+                              src="https://img.icons8.com/cute-clipart/512/no-image.png"
+                              alt="No Image"
+                              className="w-24 opacity-70"
+                            />
+                          </div>
+                        )}
+
                         <div className="p-5 flex flex-col flex-grow justify-between">
                           <div>
                             <h3 className="font-bold text-xl text-indigo-700 mb-2">
