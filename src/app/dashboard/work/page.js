@@ -40,7 +40,17 @@ export default function WorkPage() {
     }
   }, []);
 
-  // ✅ Fetch all works + compute totals
+  // ✅ Format deadline as dd-mm-yyyy
+  const formatDate = (dateString) => {
+    if (!dateString) return "—";
+    const d = new Date(dateString);
+    const day = String(d.getDate()).padStart(2, "0");
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const year = d.getFullYear();
+    return `${day}-${month}-${year}`;
+  };
+
+  // ✅ Fetch all works + compute totals + sort by deadline
   const fetchWorks = async () => {
     if (!userId) return;
     setLoading(true);
@@ -49,7 +59,14 @@ export default function WorkPage() {
       const data = await res.json();
 
       if (data.success) {
-        const worksData = data.works || [];
+        let worksData = data.works || [];
+
+        // Sort by nearest deadline first
+        worksData = worksData.sort((a, b) => {
+          const da = new Date(a.deadline);
+          const db = new Date(b.deadline);
+          return da - db;
+        });
 
         // Totals for this user
         let completed = 0,
@@ -240,18 +257,12 @@ export default function WorkPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {works.map((w) => {
-              // 3 status counts
               const counts = { completed: 0, doing: 0, notYetStarted: 0 };
               (w.status || []).forEach((s) => {
                 if (s.state === "completed") counts.completed++;
                 else if (s.state === "doing") counts.doing++;
                 else counts.notYetStarted++;
               });
-
-              // ensure total 3 entries
-              ["completed", "doing", "notYetStarted"].forEach(
-                (key) => (counts[key] = counts[key] || 0)
-              );
 
               const myStatus =
                 (w.status || []).find((s) => s.userId === userId)?.state ||
@@ -265,8 +276,7 @@ export default function WorkPage() {
                   <h4 className="font-semibold text-indigo-800">{w.subject}</h4>
                   <p className="text-gray-600 text-sm mt-1">{w.work}</p>
                   <p className="text-gray-500 text-xs mt-1">
-                    <b>Deadline:</b>{" "}
-                    {w.deadline ? new Date(w.deadline).toLocaleDateString() : "—"}
+                    <b>Deadline:</b> {formatDate(w.deadline)}
                   </p>
                   {w.fileUrl && (
                     <a
@@ -282,14 +292,12 @@ export default function WorkPage() {
                     Added by: {w.addedBy || "Admin"}
                   </p>
 
-                  {/* Counts per work */}
                   <div className="mt-3 flex justify-between bg-gray-100 rounded-lg p-2 text-xs font-medium">
                     <div className="text-green-600">✅ {counts.completed}</div>
                     <div className="text-yellow-600">⚙️ {counts.doing}</div>
                     <div className="text-rose-600">🕒 {counts.notYetStarted}</div>
                   </div>
 
-                  {/* Status buttons */}
                   <div className="flex flex-wrap gap-2 mt-3">
                     {["completed", "doing", "not yet started"].map((state) => (
                       <button
