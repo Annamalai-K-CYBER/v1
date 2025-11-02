@@ -13,6 +13,7 @@ export default function AnnouncementsPage() {
   const [uploading, setUploading] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true); // ✅ Loading state
 
   const categories = [
     { name: "General", color: "from-indigo-500 to-blue-500" },
@@ -22,19 +23,22 @@ export default function AnnouncementsPage() {
     { name: "Achievements", color: "from-purple-500 to-fuchsia-500" },
   ];
 
+  // ✅ Fetch announcements
   const fetchAnnouncements = async () => {
+    setLoading(true);
     try {
       const res = await fetch("https://csbssync.vercel.app/api/announcements");
       const data = await res.json();
       if (data.success) setAnnouncements(data.announcements);
     } catch (err) {
       console.error("Error fetching announcements:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchAnnouncements();
-
     const token = localStorage.getItem("token");
     if (token) {
       try {
@@ -46,6 +50,7 @@ export default function AnnouncementsPage() {
     }
   }, []);
 
+  // ✅ Add new announcement
   const handleAdd = async (e) => {
     e.preventDefault();
     if (!form.topic || !form.details) return alert("Please fill all fields");
@@ -73,6 +78,7 @@ export default function AnnouncementsPage() {
     }
   };
 
+  // ✅ Delete announcement (Admin only)
   const handleDelete = async (id) => {
     if (!confirm("Delete this announcement?")) return;
     await fetch(`https://csbssync.vercel.app/api/announcements?id=${id}`, {
@@ -82,31 +88,32 @@ export default function AnnouncementsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 px-4 py-8">
-      <div className="max-w-6xl mx-auto flex flex-col gap-10">
-        {/* 🌟 Header */}
-        <h1 className="text-4xl font-extrabold text-center bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent drop-shadow-sm">
+    <div className="min-h-screen w-full bg-gradient-to-br from-indigo-100 via-purple-100 to-pink-100 px-3 py-6 sm:px-6">
+      <div className="max-w-6xl mx-auto flex flex-col gap-8">
+
+        {/* ✅ Header */}
+        <h1 className="text-[20px] sm:text-3xl md:text-4xl font-extrabold text-center text-indigo-700 drop-shadow-md">
           📢 Announcements
         </h1>
 
-        {/* 🛠 Admin Add Form */}
+        {/* ✅ Add Form (Admin Only) */}
         {isAdmin && (
           <form
             onSubmit={handleAdd}
-            className="bg-white/60 backdrop-blur-xl border border-purple-200 rounded-2xl shadow-lg p-6 flex flex-col gap-4"
+            className="bg-white/90 backdrop-blur-md rounded-2xl p-5 sm:p-6 shadow-xl border border-purple-200 flex flex-col gap-4"
           >
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid sm:grid-cols-2 gap-3">
               <input
                 type="text"
-                placeholder="Announcement Topic"
+                placeholder="Topic"
                 value={form.topic}
                 onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                className="p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
+                className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
               />
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
+                className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
               >
                 {categories.map((c) => (
                   <option key={c.name}>{c.name}</option>
@@ -115,27 +122,27 @@ export default function AnnouncementsPage() {
             </div>
 
             <textarea
-              placeholder="Enter announcement details..."
-              rows={4}
+              placeholder="Details"
+              rows={3}
               value={form.details}
               onChange={(e) => setForm({ ...form, details: e.target.value })}
-              className="p-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
+              className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
             />
 
             <input
               type="file"
               accept="image/*"
               onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-              className="p-2 rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-400 outline-none"
+              className="p-2 rounded-lg border focus:ring-2 focus:ring-indigo-400"
             />
 
             <button
               type="submit"
               disabled={uploading}
-              className={`py-2 px-4 text-lg font-semibold rounded-xl text-white transition-all ${
+              className={`py-2 px-4 rounded-xl font-semibold text-white transition-all ${
                 uploading
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:scale-[1.02]"
+                  : "bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-90"
               }`}
             >
               {uploading ? "Uploading..." : "Add Announcement"}
@@ -143,89 +150,90 @@ export default function AnnouncementsPage() {
           </form>
         )}
 
-        {/* 📚 Announcements Display */}
-        {categories.map((cat) => {
-          const filtered = announcements.filter((a) => a.category === cat.name);
-          return (
-            <div
-              key={cat.name}
-              className="bg-white/60 backdrop-blur-lg border border-indigo-100 rounded-2xl shadow-xl overflow-hidden"
-            >
-              {/* 🔽 Category Header */}
-              <button
-                onClick={() =>
-                  setExpanded(expanded === cat.name ? null : cat.name)
-                }
-                className={`w-full flex justify-between items-center px-6 py-4 text-xl font-semibold text-white bg-gradient-to-r ${cat.color} transition-all duration-300`}
+        {/* ✅ Loading Spinner */}
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <div className="h-12 w-12 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          categories.map((cat) => {
+            const filtered = announcements.filter(
+              (a) => a.category === cat.name
+            );
+            return (
+              <div
+                key={cat.name}
+                className="bg-white/80 rounded-2xl overflow-hidden shadow-lg border border-indigo-100 transition-all"
               >
-                <span>
-                  {cat.name}{" "}
-                  <span className="bg-white/30 px-3 py-0.5 rounded-full text-sm ml-2">
-                    {filtered.length}
+                <button
+                  onClick={() =>
+                    setExpanded(expanded === cat.name ? null : cat.name)
+                  }
+                  className={`w-full flex justify-between items-center px-5 py-3 text-lg sm:text-xl font-semibold text-white bg-gradient-to-r ${cat.color}`}
+                >
+                  <span className="truncate">
+                    {cat.name}{" "}
+                    <span className="ml-2 bg-white/20 px-2 py-0.5 rounded-lg text-sm">
+                      {filtered.length}
+                    </span>
                   </span>
-                </span>
-                <span className="text-white text-lg">
-                  {expanded === cat.name ? "▲" : "▼"}
-                </span>
-              </button>
+                  <span className="text-white text-lg">
+                    {expanded === cat.name ? "▲" : "▼"}
+                  </span>
+                </button>
 
-              {/* 📦 Dropdown Content */}
-              {expanded === cat.name && (
-                <div className="p-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-5 bg-gradient-to-b from-white to-indigo-50 animate-fadeIn">
-                  {filtered.length === 0 ? (
-                    <p className="col-span-full text-center text-gray-500 py-8">
-                      No announcements in this category yet.
-                    </p>
-                  ) : (
-                    filtered.map((a) => (
-                      <div
-                        key={a._id}
-                        className="flex flex-col bg-white/90 rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200"
-                      >
-                        {/* 🖼 Dynamic Image */}
-                        {a.imageUrl ? (
-                          <img
-                            src={a.imageUrl}
-                            alt={a.topic}
-                            className="w-full object-contain max-h-[400px] bg-gray-50"
-                          />
-                        ) : (
-                          <div className="w-full bg-gray-100 flex items-center justify-center aspect-video">
+                {expanded === cat.name && (
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4 bg-gradient-to-b from-white to-indigo-50">
+                    {filtered.length === 0 ? (
+                      <p className="text-gray-500 text-center w-full py-6">
+                        No announcements in this category.
+                      </p>
+                    ) : (
+                      filtered.map((a) => (
+                        <div
+                          key={a._id}
+                          className="flex flex-col overflow-hidden bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300"
+                        >
+                          {/* ✅ Dynamic image height */}
+                          <div className="w-full bg-gray-100 flex justify-center items-center overflow-hidden">
                             <img
-                              src="https://img.icons8.com/cute-clipart/512/no-image.png"
-                              alt="No Image"
-                              className="w-24 opacity-70"
+                              src={
+                                a.imageUrl ||
+                                "https://img.icons8.com/cute-clipart/512/no-image.png"
+                              }
+                              alt={a.topic}
+                              className="w-full h-auto object-contain max-h-[400px] transition-transform duration-300 hover:scale-105"
                             />
                           </div>
-                        )}
 
-                        <div className="p-5 flex flex-col flex-grow justify-between">
-                          <div>
-                            <h3 className="font-bold text-xl text-indigo-700 mb-2">
-                              {a.topic}
-                            </h3>
-                            <p className="text-gray-700 text-sm whitespace-pre-wrap leading-relaxed">
-                              {a.details}
-                            </p>
+                          <div className="p-4 flex flex-col flex-grow justify-between">
+                            <div>
+                              <h3 className="font-bold text-indigo-700 text-lg">
+                                {a.topic}
+                              </h3>
+                              <p className="text-gray-700 text-sm mt-2 whitespace-pre-line">
+                                {a.details}
+                              </p>
+                            </div>
+
+                            {isAdmin && (
+                              <button
+                                onClick={() => handleDelete(a._id)}
+                                className="mt-3 bg-red-500 hover:bg-red-600 text-white py-1 rounded-lg text-sm transition"
+                              >
+                                Delete
+                              </button>
+                            )}
                           </div>
-
-                          {isAdmin && (
-                            <button
-                              onClick={() => handleDelete(a._id)}
-                              className="mt-4 bg-gradient-to-r from-red-500 to-rose-500 hover:scale-[1.02] text-white py-1.5 rounded-lg text-sm transition-all"
-                            >
-                              Delete
-                            </button>
-                          )}
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
-            </div>
-          );
-        })}
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
