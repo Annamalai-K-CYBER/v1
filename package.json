@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@pusher/push-notifications-web": "^1.1.0",
     "@vercel/analytics": "^1.5.0",
     "bcryptjs": "^3.0.2",
     "framer-motion": "^12.23.24",

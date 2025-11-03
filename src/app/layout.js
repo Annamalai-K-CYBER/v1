@@ -1,5 +1,5 @@
 import "./../styles/globals.css";
-import OneSignalInit from "./OneSignalInit"; // 👈 import your client component
+import PusherInit from "./PusherInit";
 
 export const metadata = {
   title: "CSBS SYNC",
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
-        <OneSignalInit /> {/* ✅ initializes OneSignal on client side */}
+        <PusherInit /> {/* ✅ Initializes Pusher Beams client */}
       </body>
     </html>
   );

@@ -1,33 +1,27 @@
-// app/api/notify/route.js
-import axios from "axios";
+import PusherPushNotifications from "@pusher/push-notifications-server";
 
-export async function POST(request) {
+export async function POST(req) {
   try {
-    const body = await request.json();
+    const { title, body } = await req.json();
 
-    const response = await axios.post(
-      "https://onesignal.com/api/v1/notifications",
-      {
-        app_id: "dc464e50-ff8f-4ce6-a1b2-6d3805b556c2", // 👈 Replace this
-        included_segments: ["All"],
-        headings: { en: body.title || "🔔 CSBS SYNC" },
-        contents: { en: body.message || "Test notification from Next.js" },
-        url: "https://csbssync.vercel.app",
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Basic os_v2_app_3rde4uh7r5goninsnu4alnkwyksy7uqd2kqu6umg22p47arz7at5bzirnv5he3fbe5o5zctvfvjtjzbjrrom3flhar6vie4qat6p22i", // 👈 Keep safe
+    const beamsClient = new PusherPushNotifications({
+      instanceId: "22594cbd-2c67-4ca5-91ca-1125afd2b102", // same as frontend
+      secretKey: "A1CD58EDD66A8DD3EF7F6FA0789B2D7EA3778161A153408F449026057AE00AB6",   // from dashboard
+    });
+
+    await beamsClient.publishToInterests(["general"], {
+      web: {
+        notification: {
+          title,
+          body,
+          deep_link: "https://csbssync.vercel.app", // optional
         },
-      }
-    );
+      },
+    });
 
-    return Response.json({ success: true, data: response.data });
-  } catch (error) {
-    console.error(error.response?.data || error);
-    return Response.json(
-      { success: false, error: error.response?.data || error.message },
-      { status: 500 }
-    );
+    return Response.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    return Response.json({ success: false, error: err.message }, { status: 500 });
   }
 }
