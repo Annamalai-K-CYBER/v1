@@ -22,7 +22,7 @@ export async function POST(req) {
       },
       {
         headers: {
-          Authorization: `Basic ${process.env.ONESIGNAL_REST_API_KEY}`,
+          Authorization: `key ${process.env.ONESIGNAL_REST_API_KEY}`,
           "Content-Type": "application/json",
         },
       }
