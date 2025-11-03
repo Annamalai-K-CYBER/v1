@@ -95,7 +95,7 @@ export default function DashboardHome() {
         </div>
       </div>
       {/* Main Sections */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-14">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 my-14">
         {[
           { title: "Study", color: "from-blue-500 to-cyan-400", link: "/dashboard/study" },
           { title: "Material", color: "from-purple-500 to-pink-400", link: "/dashboard/material" },
