@@ -1,5 +1,5 @@
-import "./globals.css";
-import NotificationSetup from "./NotificationSetup";
+import "../styles/globals.css";
+import NotificationSetup from "./NotificationSetup"; // 👈 same folder, correct path
 
 export const metadata = {
   title: "CSBS SYNC",
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
-        <NotificationSetup /> {/* 👈 runs once in client */}
+        <NotificationSetup /> {/* ✅ loads your push notification setup */}
       </body>
     </html>
   );
