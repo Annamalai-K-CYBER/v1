@@ -1,17 +1,18 @@
 import "./../styles/globals.css";
-import { Analytics } from "@vercel/analytics/next"
+import OneSignalInit from "./OneSignalInit";
 
 export const metadata = {
-  title: "CSBS SYNC",
-  description: "Official class portal for CSBS Department",
+  title: "OneSignal Test App",
+  description: "Push notification demo in Next.js",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <script charset="UTF-8" src="//web.webpushs.com/js/push/bd9190069fcb1b2d3ec0d0b8222dceaa_1.js" async></script>
-      <body>{children}</body>
-      {/* <Analytics />          */}
+      <body>
+        {children}
+        <OneSignalInit />
+      </body>
     </html>
   );
 }
