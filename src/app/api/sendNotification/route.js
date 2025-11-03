@@ -4,17 +4,21 @@ export async function POST(req) {
   try {
     const { title, message } = await req.json();
 
-    // Validation
     if (!title || !message) {
       return new Response(JSON.stringify({ error: "Missing title or message" }), { status: 400 });
     }
 
-    // Send to all subscribers
-    const response = await axios.post(
+    if (!process.env.ONESIGNAL_APP_ID || !process.env.ONESIGNAL_REST_API_KEY) {
+      console.error("❌ Missing OneSignal environment variables");
+      return new Response(JSON.stringify({ error: "Server config error" }), { status: 500 });
+    }
+
+    // ✅ Send to all subscribers
+    const res = await axios.post(
       "https://onesignal.com/api/v1/notifications",
       {
         app_id: process.env.ONESIGNAL_APP_ID,
-        included_segments: ["All"], // ✅ sends to ALL subscribers
+        included_segments: ["All"],
         headings: { en: title },
         contents: { en: message },
       },
@@ -26,11 +30,14 @@ export async function POST(req) {
       }
     );
 
-    return new Response(JSON.stringify({ success: true, data: response.data }), { status: 200 });
+    console.log("✅ OneSignal response:", res.data);
+    return new Response(JSON.stringify({ success: true, data: res.data }), { status: 200 });
   } catch (error) {
-    console.error("❌ OneSignal Error:", error.response?.data || error.message);
+    console.error("❌ OneSignal API Error:", error.response?.data || error.message);
     return new Response(
-      JSON.stringify({ error: error.response?.data || "Failed to send notification" }),
+      JSON.stringify({
+        error: error.response?.data || error.message,
+      }),
       { status: 500 }
     );
   }
