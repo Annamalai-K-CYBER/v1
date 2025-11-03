@@ -1,4 +1,5 @@
-import PusherPushNotifications from "@pusher/push-notifications-server";
+// app/api/notify/route.js
+import * as PusherPushNotifications from "@pusher/push-notifications-server";
 
 export async function POST(req) {
   try {
@@ -12,16 +13,16 @@ export async function POST(req) {
     await beamsClient.publishToInterests(["general"], {
       web: {
         notification: {
-          title,
-          body,
-          deep_link: "https://csbssync.vercel.app", // optional
+          title: title || "CSBS SYNC",
+          body: body || "Test notification from Next.js + Pusher Beams",
+          deep_link: "https://csbssync.vercel.app",
         },
       },
     });
 
     return Response.json({ success: true });
-  } catch (err) {
-    console.error(err);
-    return Response.json({ success: false, error: err.message }, { status: 500 });
+  } catch (error) {
+    console.error("Error sending notification:", error);
+    return Response.json({ success: false, error: error.message }, { status: 500 });
   }
 }
