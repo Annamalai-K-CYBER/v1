@@ -1,5 +1,5 @@
 import "./../styles/globals.css";
-import PusherInit from "./PusherInit";
+import BeamsInit from "./BeamsInit";
 
 export const metadata = {
   title: "CSBS SYNC",
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
-        <PusherInit /> {/* ✅ Initializes Pusher Beams client */}
+        <BeamsInit />
       </body>
     </html>
   );
