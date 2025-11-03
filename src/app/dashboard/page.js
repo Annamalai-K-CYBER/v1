@@ -39,25 +39,6 @@ export default function DashboardHome() {
         Your all-in-one dashboard for study materials, assignments, and
         announcements. Stay updated and in sync with your CSBS community 🚀
       </p>
-
-      {/* Main Sections */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-14">
-        {[
-          { title: "Study", color: "from-blue-500 to-cyan-400", link: "/dashboard/study" },
-          { title: "Material", color: "from-purple-500 to-pink-400", link: "/dashboard/material" },
-          { title: "Work", color: "from-green-500 to-teal-400", link: "/dashboard/work" },
-          { title: "Announcement", color: "from-orange-500 to-yellow-400", link: "/dashboard/announcement" },
-        ].map((item) => (
-          <a key={item.title} href={item.link}>
-            <div
-              className={`p-8 rounded-3xl shadow-lg bg-gradient-to-r ${item.color} text-white font-bold text-lg hover:scale-105 hover:shadow-2xl transform transition`}
-            >
-              {item.title}
-            </div>
-          </a>
-        ))}
-      </div>
-
       {/* ✅ Announcements Section */}
       <div className="max-w-6xl mx-auto bg-white/80 rounded-3xl shadow-xl p-6 sm:p-10 border border-indigo-100">
         <h2 className="text-2xl sm:text-3xl font-bold text-indigo-700 mb-6">
@@ -113,6 +94,25 @@ export default function DashboardHome() {
           </a>
         </div>
       </div>
+      {/* Main Sections */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-14">
+        {[
+          { title: "Study", color: "from-blue-500 to-cyan-400", link: "/dashboard/study" },
+          { title: "Material", color: "from-purple-500 to-pink-400", link: "/dashboard/material" },
+          { title: "Work", color: "from-green-500 to-teal-400", link: "/dashboard/work" },
+          { title: "Announcement", color: "from-orange-500 to-yellow-400", link: "/dashboard/announcement" },
+        ].map((item) => (
+          <a key={item.title} href={item.link}>
+            <div
+              className={`p-8 rounded-3xl shadow-lg bg-gradient-to-r ${item.color} text-white font-bold text-lg hover:scale-105 hover:shadow-2xl transform transition`}
+            >
+              {item.title}
+            </div>
+          </a>
+        ))}
+      </div>
+
+      
     </div>
   );
 }
