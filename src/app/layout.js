@@ -1,5 +1,5 @@
-import "./../styles/globals.css";
-import BeamsInit from "./BeamsInit";
+import "./globals.css";
+import NotificationSetup from "./NotificationSetup";
 
 export const metadata = {
   title: "CSBS SYNC",
@@ -11,7 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body>
         {children}
-        <BeamsInit />
+        <NotificationSetup /> {/* 👈 runs once in client */}
       </body>
     </html>
   );
