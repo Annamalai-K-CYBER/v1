@@ -273,7 +273,7 @@ export default function WorkPage() {
                       href={w.fileUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-white bg-blue-600 rounded-2xl p-2 underline text-xs block mt-1"
+                      className="text-white bg-blue-600 w-fit rounded-2xl p-2 underline text-xs block mt-1"
                     >
                       👀 View File 👀
                     </a>
