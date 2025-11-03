@@ -14,7 +14,6 @@ export default function WorkPage() {
     totalWorks: 0,
     completed: 0,
     doing: 0,
-    notYetStarted: 0,
   });
 
   const [subject, setSubject] = useState("");
@@ -64,16 +63,14 @@ export default function WorkPage() {
         // Sort by deadline ascending
         worksData = worksData.sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
 
-        // Calculate totals
+        // Calculate totals (only completed + doing)
         let completed = 0,
-          doing = 0,
-          notYetStarted = 0;
+          doing = 0;
 
         worksData.forEach((work) => {
           const myStatus = (work.status || []).find((s) => s.userId === userId);
           if (myStatus?.state === "completed") completed++;
           else if (myStatus?.state === "doing") doing++;
-          else notYetStarted++;
         });
 
         setWorks(worksData);
@@ -81,7 +78,6 @@ export default function WorkPage() {
           totalWorks: worksData.length,
           completed,
           doing,
-          notYetStarted,
         });
       }
     } catch (err) {
@@ -146,20 +142,16 @@ export default function WorkPage() {
     }
   };
 
-  // ✅ Update status (works now)
+  // ✅ Update status
   const handleStatusChange = async (workId, state) => {
     const token = localStorage.getItem("token");
     if (!token) return alert("Please login first");
-
-    // Normalize "not started"
-    const normalizedState =
-      state === "not started" || state === "not yet started" ? "notYetStarted" : state;
 
     try {
       const res = await fetch(`/api/work/status/${workId}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, username, email, state: normalizedState }),
+        body: JSON.stringify({ userId, username, email, state }),
       });
       const data = await res.json();
       if (data.success) fetchWorks();
@@ -184,12 +176,11 @@ export default function WorkPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-6 px-3 flex flex-col items-center">
       {/* Totals */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-5xl mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full max-w-4xl mb-6">
         {[
           { label: "Total Works", value: totals.totalWorks, color: "bg-indigo-500", icon: "📚" },
           { label: "Completed", value: totals.completed, color: "bg-green-500", icon: "✅" },
           { label: "Doing", value: totals.doing, color: "bg-yellow-400", icon: "⚙️" },
-          { label: "Not Started", value: totals.notYetStarted, color: "bg-rose-500", icon: "🕒" },
         ].map((card, i) => (
           <div
             key={i}
@@ -258,15 +249,14 @@ export default function WorkPage() {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {works.map((w) => {
-              const counts = { completed: 0, doing: 0, notYetStarted: 0 };
+              const counts = { completed: 0, doing: 0 };
               (w.status || []).forEach((s) => {
                 if (s.state === "completed") counts.completed++;
                 else if (s.state === "doing") counts.doing++;
-                else counts.notYetStarted++;
               });
 
               const myStatus =
-                (w.status || []).find((s) => s.userId === userId)?.state || "notYetStarted";
+                (w.status || []).find((s) => s.userId === userId)?.state || "";
 
               return (
                 <div
@@ -283,7 +273,7 @@ export default function WorkPage() {
                       href={w.fileUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-blue-500 underline text-xs block mt-1"
+                      className="text-white bg-blue-600 rounded-2xl p-2 underline text-xs block mt-1"
                     >
                       👀 View File 👀
                     </a>
@@ -295,15 +285,13 @@ export default function WorkPage() {
                   <div className="mt-3 flex justify-between bg-gray-100 rounded-lg p-2 text-xs font-medium">
                     <div className="text-green-600">✅ {counts.completed}</div>
                     <div className="text-yellow-600">⚙️ {counts.doing}</div>
-                    <div className="text-rose-600">🕒 {counts.notYetStarted}</div>
                   </div>
 
-                  {/* Status Buttons (working now) */}
+                  {/* Status Buttons */}
                   <div className="flex flex-wrap gap-2 mt-3">
-                    {[
+                    {[ 
                       { key: "completed", label: "✅ Completed" },
                       { key: "doing", label: "⚙️ Doing" },
-                      { key: "notYetStarted", label: "🕒 Not Started" },
                     ].map((btn) => (
                       <button
                         key={btn.key}
@@ -312,14 +300,10 @@ export default function WorkPage() {
                           myStatus === btn.key
                             ? btn.key === "completed"
                               ? "bg-green-700"
-                              : btn.key === "doing"
-                              ? "bg-yellow-600"
-                              : "bg-gray-700"
+                              : "bg-yellow-600"
                             : btn.key === "completed"
                             ? "bg-green-400"
-                            : btn.key === "doing"
-                            ? "bg-yellow-400"
-                            : "bg-gray-400"
+                            : "bg-yellow-400"
                         }`}
                       >
                         {btn.label}

@@ -1,5 +1,5 @@
-import "../styles/globals.css";
-import NotificationSetup from "./NotificationSetup"; // 👈 same folder, correct path
+import "./../styles/globals.css";
+import { Analytics } from "@vercel/analytics/next"
 
 export const metadata = {
   title: "CSBS SYNC",
@@ -9,10 +9,8 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        {children}
-        <NotificationSetup /> {/* ✅ loads your push notification setup */}
-      </body>
+      <body>{children}</body>
+      {/* <Analytics />          */}
     </html>
   );
 }
