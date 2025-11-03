@@ -1,6 +1,5 @@
 import "./../styles/globals.css";
-import Script from "next/script"; // ✅ important for loading OneSignal SDK
-import { useEffect } from "react";
+import OneSignalInit from "./OneSignalInit"; // 👈 import your client component
 
 export const metadata = {
   title: "CSBS SYNC",
@@ -8,32 +7,12 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.OneSignal = window.OneSignal || [];
-      OneSignal.push(function () {
-        OneSignal.init({
-          appId: "YOUR-ONESIGNAL-APP-ID", // 👈 Replace with your real OneSignal App ID
-          notifyButton: { enable: true }, // shows the bell icon
-        });
-
-        // Optional: auto show permission popup
-        OneSignal.showSlidedownPrompt();
-      });
-    }
-  }, []);
-
   return (
     <html lang="en">
-      <head>
-        {/* ✅ Load OneSignal SDK once */}
-        <Script
-          src="https://cdn.onesignal.com/sdks/OneSignalSDK.js"
-          strategy="beforeInteractive"
-        />
-      </head>
-
-      <body>{children}</body>
+      <body>
+        {children}
+        <OneSignalInit /> {/* ✅ initializes OneSignal on client side */}
+      </body>
     </html>
   );
 }
