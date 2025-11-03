@@ -17,7 +17,7 @@ export async function POST(request) {
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: "dkvnzywxqeutmnzws34a4c22k", // 👈 Keep safe
+          Authorization: dkvnzywxqeutmnzws34a4c22k, // 👈 Keep safe
         },
       }
     );
