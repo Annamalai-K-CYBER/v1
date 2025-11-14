@@ -70,7 +70,7 @@ export async function POST(req) {
         role: user.role,
       },
       process.env.JWT_SECRET || "supersecret",
-      { expiresIn: "1d" }
+      { expiresIn: "2d" }
     );
 
     return NextResponse.json({

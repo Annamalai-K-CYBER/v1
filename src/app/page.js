@@ -100,7 +100,7 @@ export default function Home() {
           Welcome to the{" "}
           <span className="text-amber-300">CSBS Department Hub 💻</span>
         </motion.h2>
-        <a href="#" class="sp_notify_prompt">Activate notifications</a>
+
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
