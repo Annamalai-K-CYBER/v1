@@ -1,60 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { messaging, auth, db } from "@/lib/firebase";
-import { getToken, onMessage } from "firebase/messaging";
 
 export default function DashboardHome() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ============================================================
-  // 🔔 NOTIFICATION SETUP
-  // ============================================================
-  const setupNotifications = async () => {
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") return;
-
-      const token = await getToken(messaging, {
-        vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
-      });
-
-      const user = auth.currentUser;
-      if (!user) return;
-
-      // Save FCM token to Firestore
-      await db.collection("fcmTokens").doc(user.uid).set({ token });
-
-      // Foreground notifications
-      onMessage(messaging, (payload) => {
-        new Notification(payload.notification.title, {
-          body: payload.notification.body,
-        });
-      });
-
-      // Send welcome notification from server
-      await fetch("/api/sendNotification", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          token,
-          title: "Welcome to CSBS Sync 🎉",
-          body: "You're now receiving notifications!",
-        }),
-      });
-    } catch (error) {
-      console.log("Notification error:", error);
-    }
-  };
-
-  useEffect(() => {
-    setupNotifications();
-  }, []);
-
-  // ============================================================
-  // 📢 FETCH ANNOUNCEMENTS
-  // ============================================================
+  // ✅ Fetch announcements
   const fetchAnnouncements = async () => {
     setLoading(true);
     try {
@@ -72,32 +24,29 @@ export default function DashboardHome() {
     fetchAnnouncements();
   }, []);
 
+  // ✅ Filter only “General” and “Exams”
   const filteredAnnouncements = announcements.filter(
     (a) => a.category === "General" || a.category === "Exams"
   );
 
-  // ============================================================
-  // 🎨 UI
-  // ============================================================
   return (
     <div className="text-center py-10 px-4 bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
+      {/* Header */}
       <h1 className="text-4xl font-extrabold text-indigo-800 mb-4 drop-shadow-sm">
         🎓 Welcome to CSBS Sync
       </h1>
-
       <p className="text-gray-700 max-w-2xl mx-auto mb-10 leading-relaxed">
         Your all-in-one dashboard for study materials, assignments, and
         announcements. Stay updated and in sync with your CSBS community 🚀
       </p>
-
-      {/* Announcements */}
+      {/* ✅ Announcements Section */}
       <div className="max-w-6xl mx-auto bg-white/80 rounded-3xl shadow-xl p-6 sm:p-10 border border-indigo-100">
         <h2 className="text-2xl sm:text-3xl font-bold text-indigo-700 mb-6">
           📢 Latest Announcements
         </h2>
 
         {loading ? (
-          <div className="flex justify-center py-10">
+          <div className="flex justify-center items-center py-10">
             <div className="h-10 w-10 border-4 border-indigo-400 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : filteredAnnouncements.length === 0 ? (
@@ -109,7 +58,7 @@ export default function DashboardHome() {
                 key={a._id}
                 className="bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all border border-gray-100"
               >
-                <div className="bg-gray-100 flex justify-center items-center">
+                <div className="bg-gray-100 flex justify-center items-center overflow-hidden">
                   <img
                     src={
                       a.imageUrl ||
@@ -119,7 +68,6 @@ export default function DashboardHome() {
                     className="w-full h-auto object-contain max-h-[300px]"
                   />
                 </div>
-
                 <div className="p-4 text-left">
                   <span className="inline-block px-3 py-1 text-xs font-semibold text-white rounded-full bg-gradient-to-r from-indigo-500 to-blue-500 mb-2">
                     {a.category}
@@ -136,6 +84,7 @@ export default function DashboardHome() {
           </div>
         )}
 
+        {/* View All Button */}
         <div className="text-center mt-8">
           <a
             href="/dashboard/announcement"
@@ -145,7 +94,6 @@ export default function DashboardHome() {
           </a>
         </div>
       </div>
-
       {/* Main Sections */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 my-14">
         {[
@@ -156,13 +104,15 @@ export default function DashboardHome() {
         ].map((item) => (
           <a key={item.title} href={item.link}>
             <div
-              className={`p-8 rounded-3xl shadow-lg bg-gradient-to-r ${item.color} text-white font-bold text-lg hover:scale-105 hover:shadow-2xl transition`}
+              className={`p-8 rounded-3xl shadow-lg bg-gradient-to-r ${item.color} text-white font-bold text-lg hover:scale-105 hover:shadow-2xl transform transition`}
             >
               {item.title}
             </div>
           </a>
         ))}
       </div>
+
+      
     </div>
   );
 }

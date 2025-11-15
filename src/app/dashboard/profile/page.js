@@ -6,12 +6,17 @@ import { jwtDecode } from "jwt-decode";
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showAddEmail, setShowAddEmail] = useState(false);
+
+  const [email1, setEmail1] = useState("");
+
   const [form, setForm] = useState({
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
 
+  // Load user from token
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
@@ -24,6 +29,43 @@ export default function ProfilePage() {
     }
   }, []);
 
+  // 🔹 Add Secondary Email Handler
+  const handleAddEmail = async (e) => {
+    e.preventDefault();
+
+    if (!email1.trim()) {
+      alert("Enter a valid email!");
+      return;
+    }
+
+    try {
+      const res = await fetch("https://csbssync.vercel.app/api/addemail", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user?.email,
+          email1,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        alert("Secondary email added successfully!");
+
+        // Update UI
+        setUser({ ...user, email1 });
+        setEmail1("");
+        setShowAddEmail(false);
+      } else {
+        alert(data.message || "Failed to add email!");
+      }
+    } catch {
+      alert("Server error! Try again later.");
+    }
+  };
+
+  // 🔹 Password Change Handler
   const handlePasswordChange = async (e) => {
     e.preventDefault();
     if (form.newPassword !== form.confirmPassword) {
@@ -32,15 +74,19 @@ export default function ProfilePage() {
     }
 
     try {
-      const res = await fetch("https://csbssync.vercel.app/api/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: user?.email,
-          currentPassword: form.currentPassword,
-          newPassword: form.newPassword,
-        }),
-      });
+      const res = await fetch(
+        "https://csbssync.vercel.app/api/change-password",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: user?.email,
+            currentPassword: form.currentPassword,
+            newPassword: form.newPassword,
+          }),
+        }
+      );
+
       const data = await res.json();
       if (data.success) {
         alert("Password changed successfully!");
@@ -72,20 +118,56 @@ export default function ProfilePage() {
                 <span className="font-medium text-gray-700">Email:</span>
                 <span className="text-gray-800 break-all">{user.email}</span>
               </div>
+
+              {user.email1 && (
+                <div className="flex justify-between border-b border-gray-300 pb-2">
+                  <span className="font-medium text-gray-700">Secondary Email:</span>
+                  <span className="text-gray-800 break-all">{user.email1}</span>
+                </div>
+              )}
             </div>
 
+            {/* Add Secondary Email Button */}
+            {!user.email1 && (
+              <button
+                onClick={() => setShowAddEmail(!showAddEmail)}
+                className="w-full py-2 font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-emerald-600 hover:to-green-500 transition rounded-md mb-3"
+              >
+                {showAddEmail ? "Cancel" : "Add Secondary Email"}
+              </button>
+            )}
+
+            {/* Add Email Form */}
+            {showAddEmail && (
+              <form onSubmit={handleAddEmail} className="mt-3 space-y-3 text-sm">
+                <input
+                  type="email"
+                  placeholder="Enter secondary email"
+                  value={email1}
+                  onChange={(e) => setEmail1(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                />
+                <button
+                  type="submit"
+                  className="w-full py-2 text-white font-semibold bg-gradient-to-r from-green-400 to-emerald-500 hover:from-emerald-500 hover:to-green-400 transition rounded-md"
+                >
+                  Save Email
+                </button>
+              </form>
+            )}
+
+            {/* Change Password Button */}
             <button
               onClick={() => setShowChangePassword(!showChangePassword)}
-              className="w-full py-2 font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500 transition rounded-md"
+              className="w-full mt-4 py-2 font-semibold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-indigo-500 hover:to-blue-500 transition rounded-md"
             >
               {showChangePassword ? "Cancel" : "Change Password"}
             </button>
 
+            {/* Change Password Form */}
             {showChangePassword && (
-              <form
-                onSubmit={handlePasswordChange}
-                className="mt-6 space-y-3 text-sm"
-              >
+              <form onSubmit={handlePasswordChange} className="mt-6 space-y-3 text-sm">
                 <input
                   type="password"
                   placeholder="Current Password"
@@ -118,7 +200,7 @@ export default function ProfilePage() {
                 />
                 <button
                   type="submit"
-                  className="w-full py-2 text-white font-semibold bg-gradient-to-r from-green-400 to-emerald-500 hover:from-emerald-500 hover:to-green-400 transition rounded-md"
+                  className="w-full py-2 text-white font-semibold bg-gradient-to-r from-indigo-400 to-blue-500 hover:from-blue-500 hover:to-indigo-400 transition rounded-md"
                 >
                   Update Password
                 </button>
