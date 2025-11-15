@@ -1,12 +1,66 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { messaging, auth, db } from "@/lib/db";
+import { getToken, onMessage } from "firebase/messaging";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 
 export default function DashboardHome() {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Fetch announcements
+  // ============================================================
+  // 🔔 WEB PUSH NOTIFICATION SETUP
+  // ============================================================
+  const setupNotifications = async () => {
+    try {
+      // Ask permission
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") return;
+
+      // Get FCM token
+      const token = await getToken(messaging, {
+        vapidKey: "YOUR_PUBLIC_VAPID_KEY",
+      });
+
+      const user = auth.currentUser;
+      if (!user) return;
+
+      // Save token to Firestore
+      await setDoc(doc(db, "fcmTokens", user.uid), { token });
+
+      // Receive foreground notifications
+      onMessage(messaging, (payload) => {
+        new Notification(payload.notification.title, {
+          body: payload.notification.body,
+        });
+      });
+
+      // Call your Vercel API → Send welcome notif
+      await fetch("/api/sendNotification", {
+        method: "POST",
+        body: JSON.stringify({
+          token,
+          title: "Welcome to CSBS Sync 🎉",
+          body: "You're now receiving notifications!",
+        }),
+      });
+
+    } catch (error) {
+      console.log("Notification setup error:", error);
+    }
+  };
+
+  useEffect(() => {
+    setupNotifications();
+  }, []);
+  // ============================================================
+  // END NOTIFICATION CODE
+  // ============================================================
+
+  // ============================================================
+  // 🔽 EXISTING ANNOUNCEMENT FETCHING (unchanged)
+  // ============================================================
   const fetchAnnouncements = async () => {
     setLoading(true);
     try {
@@ -24,14 +78,12 @@ export default function DashboardHome() {
     fetchAnnouncements();
   }, []);
 
-  // ✅ Filter only “General” and “Exams”
   const filteredAnnouncements = announcements.filter(
     (a) => a.category === "General" || a.category === "Exams"
   );
 
   return (
     <div className="text-center py-10 px-4 bg-gradient-to-br from-indigo-50 to-purple-50 min-h-screen">
-      {/* Header */}
       <h1 className="text-4xl font-extrabold text-indigo-800 mb-4 drop-shadow-sm">
         🎓 Welcome to CSBS Sync
       </h1>
@@ -39,7 +91,8 @@ export default function DashboardHome() {
         Your all-in-one dashboard for study materials, assignments, and
         announcements. Stay updated and in sync with your CSBS community 🚀
       </p>
-      {/* ✅ Announcements Section */}
+
+      {/* Announcements */}
       <div className="max-w-6xl mx-auto bg-white/80 rounded-3xl shadow-xl p-6 sm:p-10 border border-indigo-100">
         <h2 className="text-2xl sm:text-3xl font-bold text-indigo-700 mb-6">
           📢 Latest Announcements
@@ -84,7 +137,6 @@ export default function DashboardHome() {
           </div>
         )}
 
-        {/* View All Button */}
         <div className="text-center mt-8">
           <a
             href="/dashboard/announcement"
@@ -94,6 +146,7 @@ export default function DashboardHome() {
           </a>
         </div>
       </div>
+
       {/* Main Sections */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 my-14">
         {[
@@ -111,8 +164,6 @@ export default function DashboardHome() {
           </a>
         ))}
       </div>
-
-      
     </div>
   );
 }
