@@ -1,29 +1,25 @@
-import clientPromise from "@/lib/mongodb";
+import { NextResponse } from "next/server";
+import { connectDB } from "@/lib/db";
+import mongoose from "mongoose";
+
+const tokenSchema = new mongoose.Schema({
+  uid: String,
+  token: String,
+});
+
+const Token =
+  mongoose.models.Token || mongoose.model("Token", tokenSchema);
 
 export async function POST(req) {
-  try {
-    const { userId, fcmToken } = await req.json();
+  await connectDB();
 
-    if (!userId || !fcmToken) {
-      return Response.json(
-        { success: false, message: "userId and fcmToken required" },
-        { status: 400 }
-      );
-    }
+  const { uid, token } = await req.json();
 
-    const client = await clientPromise;
-    const db = client.db("csbs_sync");
+  await Token.updateOne(
+    { uid },
+    { $set: { uid, token } },
+    { upsert: true }
+  );
 
-    // Save or update token
-    await db.collection("fcmTokens").updateOne(
-      { userId },
-      { $set: { userId, fcmToken } },
-      { upsert: true }
-    );
-
-    return Response.json({ success: true, message: "Token saved" });
-  } catch (error) {
-    console.error("Token save error:", error);
-    return Response.json({ success: false }, { status: 500 });
-  }
+  return NextResponse.json({ success: true });
 }
