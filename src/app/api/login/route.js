@@ -69,6 +69,7 @@ export async function POST(req) {
         username: user.username,
         email: user.email,
         role: user.role,
+        email1: user.email1,
       },
       process.env.JWT_SECRET || "supersecret",
       { expiresIn: "2d" }
